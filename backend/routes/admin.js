@@ -1,10 +1,11 @@
-// backend/routes/admin.js
+// backend/routes/admin.js - ПОЛНЫЙ ОБНОВЛЁННЫЙ КОД
 const express = require('express');
 const router = express.Router();
 const { db } = require('../services/database');
 const { sendTelegramNotification } = require('../services/telegram');
 
-// Направления
+// ==================== НАПРАВЛЕНИЯ ====================
+
 router.get('/directions', (req, res) => {
     res.json(db.getDirections());
 });
@@ -19,7 +20,8 @@ router.delete('/directions/:id', (req, res) => {
     res.json({ success: true });
 });
 
-// Настройки
+// ==================== НАСТРОЙКИ ====================
+
 router.get('/settings', (req, res) => {
     res.json(db.getSettings());
 });
@@ -29,11 +31,11 @@ router.put('/settings', (req, res) => {
     res.json(settings);
 });
 
-// Заявки
+// ==================== ЗАЯВКИ ====================
+
 router.get('/orders', (req, res) => {
     let orders = db.getOrders();
     
-    // Фильтрация
     if (req.query.status) {
         orders = orders.filter(o => o.status === req.query.status);
     }
@@ -41,15 +43,14 @@ router.get('/orders', (req, res) => {
         orders = orders.filter(o => o.deliveryDate === req.query.date);
     }
     
-    // Сортировка по дате создания (новые первые)
+    // Сортировка: новые первыми
     orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
     res.json(orders);
 });
 
 router.get('/orders/:orderNumber', (req, res) => {
-    const orders = db.getOrders();
-    const order = orders.find(o => o.orderNumber === req.params.orderNumber);
+    const order = db.getOrder(req.params.orderNumber);
     if (order) {
         res.json(order);
     } else {
@@ -58,10 +59,7 @@ router.get('/orders/:orderNumber', (req, res) => {
 });
 
 router.put('/orders/:orderNumber/status', (req, res) => {
-    const order = db.updateOrder(req.params.orderNumber, {
-        status: req.body.status,
-        updatedAt: new Date().toISOString()
-    });
+    const order = db.updateOrder(req.params.orderNumber, { status: req.body.status });
     if (order) {
         res.json(order);
     } else {
@@ -69,10 +67,22 @@ router.put('/orders/:orderNumber/status', (req, res) => {
     }
 });
 
-// Повторная отправка в Telegram
+router.delete('/orders/:orderNumber', (req, res) => {
+    const order = db.deleteOrder(req.params.orderNumber);
+    if (order) {
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'Заявка не найдена' });
+    }
+});
+
+router.delete('/orders/completed', (req, res) => {
+    const deleted = db.deleteCompletedOrders();
+    res.json({ success: true, deleted });
+});
+
 router.post('/orders/:orderNumber/telegram', async (req, res) => {
-    const orders = db.getOrders();
-    const order = orders.find(o => o.orderNumber === req.params.orderNumber);
+    const order = db.getOrder(req.params.orderNumber);
     if (order) {
         await sendTelegramNotification(order);
         res.json({ success: true });
@@ -81,11 +91,27 @@ router.post('/orders/:orderNumber/telegram', async (req, res) => {
     }
 });
 
-// Загрузка машин
-router.get('/vehicle-load', (req, res) => {
-    const date = req.query.date || new Date().toISOString().split('T')[0];
-    const load = db.getVehicleLoadForDate(date);
-    res.json(load);
+// ==================== СЛОТЫ ====================
+
+router.get('/slots/:directionId', (req, res) => {
+    const slots = db.getSlots(parseInt(req.params.directionId));
+    res.json(slots);
+});
+
+router.post('/slots', (req, res) => {
+    const { directionId, date, limit } = req.body;
+    
+    if (!directionId || !date) {
+        return res.status(400).json({ message: 'Укажите направление и дату' });
+    }
+    
+    const slots = db.addSlot(parseInt(directionId), date, limit || 0);
+    res.json(slots);
+});
+
+router.delete('/slots/:directionId/:date', (req, res) => {
+    db.deleteSlot(parseInt(req.params.directionId), req.params.date);
+    res.json({ success: true });
 });
 
 module.exports = router;
