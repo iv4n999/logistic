@@ -1,178 +1,290 @@
-<!-- frontend/admin.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админ-панель | Управление поставками</title>
+    <title>Панель управления</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="admin-body">
-    <div class="admin-container">
+    <div class="admin-layout">
+        <!-- Сайдбар -->
         <aside class="sidebar">
-            <h2>⚙️ Админ-панель</h2>
-            <nav>
-                <a href="#directions" class="nav-link active">Направления</a>
-                <a href="#settings" class="nav-link">Настройки</a>
-                <a href="#orders" class="nav-link">Заявки</a>
-                <a href="#vehicle" class="nav-link">Загрузка машин</a>
+            <div class="sidebar-header">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">ЛОГИСТИКА</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#orders" class="nav-item active" data-section="orders">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <span>Заявки</span>
+                </a>
+                <a href="#directions" class="nav-item" data-section="directions">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>Направления</span>
+                </a>
+                <a href="#slots" class="nav-item" data-section="slots">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>Даты поставок</span>
+                </a>
+                <a href="#settings" class="nav-item" data-section="settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span>Настройки</span>
+                </a>
             </nav>
+            <div class="sidebar-footer">
+                <a href="/" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                        <polyline points="10 17 15 12 10 7"></polyline>
+                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                    </svg>
+                    <span>На сайт</span>
+                </a>
+            </div>
         </aside>
 
+        <!-- Основной контент -->
         <main class="admin-main">
+            <!-- Заявки -->
+            <section id="orders" class="admin-section active">
+                <div class="section-toolbar">
+                    <h1>Заявки</h1>
+                    <div class="toolbar-actions">
+                        <select id="orderStatusFilter" class="select-input">
+                            <option value="">Все статусы</option>
+                            <option value="new">Новые</option>
+                            <option value="confirmed">Подтверждённые</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="completed">Завершённые</option>
+                            <option value="cancelled">Отменённые</option>
+                        </select>
+                        <button class="btn btn-danger" id="deleteCompletedBtn">
+                            Удалить завершённые
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="ordersTable">
+                        <thead>
+                            <tr>
+                                <th>Номер</th>
+                                <th>Направление</th>
+                                <th>Клиент</th>
+                                <th>Дата поставки</th>
+                                <th>Груз</th>
+                                <th>Статус</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Динамически -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
             <!-- Направления -->
             <section id="directions" class="admin-section">
-                <h2>Направления</h2>
-                <div class="section-header">
-                    <button class="btn btn-primary" onclick="showAddDirectionModal()">
-                        + Добавить направление
+                <div class="section-toolbar">
+                    <h1>Направления</h1>
+                    <button class="btn btn-primary" onclick="showDirectionModal()">
+                        + Добавить
                     </button>
                 </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Название</th>
-                            <th>Код</th>
-                            <th>Статус</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody id="directionsTable">
-                        <!-- Заполняется динамически -->
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Код</th>
+                                <th>Статус</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="directionsTableBody">
+                            <!-- Динамически -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Даты поставок -->
+            <section id="slots" class="admin-section">
+                <div class="section-toolbar">
+                    <h1>Даты поставок</h1>
+                </div>
+                <div class="slots-manager">
+                    <div class="slots-sidebar">
+                        <h3>Выберите направление</h3>
+                        <div id="slotsDirectionsList" class="slots-directions-list">
+                            <!-- Динамически -->
+                        </div>
+                    </div>
+                    <div class="slots-content">
+                        <div id="slotsPlaceholder" class="slots-placeholder">
+                            <p>Выберите направление слева</p>
+                        </div>
+                        <div id="slotsEditor" class="slots-editor hidden">
+                            <div class="slots-header">
+                                <h3 id="slotsDirectionName">Направление</h3>
+                                <button class="btn btn-primary" onclick="showAddSlotModal()">
+                                    + Добавить дату
+                                </button>
+                            </div>
+                            <div class="slots-list" id="slotsList">
+                                <!-- Динамически -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Настройки -->
-            <section id="settings" class="admin-section hidden">
-                <h2>Общие настройки</h2>
+            <section id="settings" class="admin-section">
+                <div class="section-toolbar">
+                    <h1>Настройки</h1>
+                </div>
                 <form id="settingsForm" class="settings-form">
-                    <div class="form-group">
-                        <label>Адрес склада</label>
-                        <textarea name="warehouseAddress" rows="2"></textarea>
+                    <div class="settings-group">
+                        <h3>Склад</h3>
+                        <div class="form-field">
+                            <label>Адрес склада</label>
+                            <textarea name="warehouseAddress" class="input textarea"></textarea>
+                        </div>
+                        <div class="form-field">
+                            <label>Режим работы</label>
+                            <input type="text" name="workHours" class="input" placeholder="Пн-Пт: 9:00 - 18:00">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Минимум дней до поставки</label>
-                        <input type="number" name="minDaysBeforeDelivery" min="1" value="1">
+                    <div class="settings-group">
+                        <h3>Telegram уведомления</h3>
+                        <div class="form-field">
+                            <label>Bot Token</label>
+                            <input type="password" name="telegramBotToken" class="input">
+                        </div>
+                        <div class="form-field">
+                            <label>Chat ID</label>
+                            <input type="text" name="telegramChatId" class="input">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Telegram Bot Token</label>
-                        <input type="password" name="telegramBotToken">
-                    </div>
-                    <div class="form-group">
-                        <label>Telegram Chat ID (для уведомлений)</label>
-                        <input type="text" name="telegramChatId">
-                    </div>
-                    <div class="form-group">
-                        <label>Режим работы склада</label>
-                        <input type="text" name="workHours" placeholder="Пн-Пт: 9:00 - 18:00">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Сохранить настройки</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
                 </form>
-            </section>
-
-            <!-- Заявки -->
-            <section id="orders" class="admin-section hidden">
-                <h2>Заявки</h2>
-                <div class="filters">
-                    <select id="orderStatusFilter">
-                        <option value="">Все статусы</option>
-                        <option value="new">Новые</option>
-                        <option value="confirmed">Подтверждённые</option>
-                        <option value="in_progress">В работе</option>
-                        <option value="completed">Завершённые</option>
-                    </select>
-                    <input type="date" id="orderDateFilter">
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>№</th>
-                            <th>Дата</th>
-                            <th>Направление</th>
-                            <th>Клиент</th>
-                            <th>Груз</th>
-                            <th>Статус</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTable">
-                        <!-- Заполняется динамически -->
-                    </tbody>
-                </table>
-            </section>
-
-            <!-- Загрузка машин -->
-            <section id="vehicle" class="admin-section hidden">
-                <h2>Планирование загрузки</h2>
-                <div class="vehicle-planning">
-                    <div class="date-selector">
-                        <label>Дата:</label>
-                        <input type="date" id="vehicleDate">
-                    </div>
-                    <div class="vehicle-stats" id="vehicleStats">
-                        <!-- Статистика загрузки -->
-                    </div>
-                    <div class="vehicle-orders" id="vehicleOrders">
-                        <!-- Заявки на дату -->
-                    </div>
-                </div>
             </section>
         </main>
     </div>
 
-    <!-- Модальное окно добавления направления -->
+    <!-- Модальные окна -->
+    
+    <!-- Направление -->
     <div id="directionModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeDirectionModal()">&times;</span>
-            <h3 id="directionModalTitle">Добавить направление</h3>
-            <form id="directionForm">
-                <input type="hidden" id="directionId">
-                <div class="form-group">
-                    <label>Название</label>
-                    <input type="text" id="directionName" required>
+        <div class="modal-overlay" onclick="closeDirectionModal()"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="directionModalTitle">Добавить направление</h2>
+                    <button class="modal-close" onclick="closeDirectionModal()">×</button>
                 </div>
-                <div class="form-group">
-                    <label>Код</label>
-                    <input type="text" id="directionCode" required maxlength="5">
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="directionActive" checked>
-                        Активно
-                    </label>
-                </div>
-                <button type="submit" class="btn btn-primary">Сохранить</button>
-            </form>
+                <form id="directionForm">
+                    <input type="hidden" id="directionId">
+                    <div class="form-field">
+                        <label>Название</label>
+                        <input type="text" id="directionName" class="input" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Код</label>
+                        <input type="text" id="directionCode" class="input" required maxlength="10">
+                    </div>
+                    <div class="form-field">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="directionActive" checked>
+                            <span>Активно</span>
+                        </label>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeDirectionModal()">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Модальное окно заявки -->
-    <div id="orderModal" class="modal hidden">
-        <div class="modal-content modal-lg">
-            <span class="close-modal" onclick="closeOrderModal()">&times;</span>
-            <h3>Детали заявки #<span id="orderModalNumber"></span></h3>
-            <div id="orderModalContent">
-                <!-- Детали заявки -->
-            </div>
-            <div class="order-actions">
-                <select id="orderStatusSelect">
-                    <option value="new">Новая</option>
-                    <option value="confirmed">Подтверждена</option>
-                    <option value="in_progress">В работе</option>
-                    <option value="completed">Завершена</option>
-                    <option value="cancelled">Отменена</option>
-                </select>
-                <button class="btn btn-primary" onclick="updateOrderStatus()">
-                    Обновить статус
-                </button>
-                <button class="btn btn-secondary" onclick="sendToTelegram()">
-                    Отправить в Telegram
-                </button>
+    <!-- Добавить дату -->
+    <div id="slotModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeSlotModal()"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Добавить дату</h2>
+                    <button class="modal-close" onclick="closeSlotModal()">×</button>
+                </div>
+                <form id="slotForm">
+                    <div class="form-field">
+                        <label>Дата</label>
+                        <input type="date" id="slotDate" class="input" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Лимит заявок (0 = без лимита)</label>
+                        <input type="number" id="slotLimit" class="input" min="0" value="0">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeSlotModal()">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Добавить</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <!-- Детали заявки -->
+    <div id="orderModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeOrderModal()"></div>
+        <div class="modal-container modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Заявка #<span id="orderModalNumber"></span></h2>
+                    <button class="modal-close" onclick="closeOrderModal()">×</button>
+                </div>
+                <div id="orderModalContent">
+                    <!-- Динамически -->
+                </div>
+                <div class="modal-actions">
+                    <select id="orderStatusSelect" class="select-input">
+                        <option value="new">Новая</option>
+                        <option value="confirmed">Подтверждена</option>
+                        <option value="in_progress">В работе</option>
+                        <option value="completed">Завершена</option>
+                        <option value="cancelled">Отменена</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="updateOrderStatus()">Обновить статус</button>
+                    <button class="btn btn-secondary" onclick="sendToTelegram()">Отправить в Telegram</button>
+                    <button class="btn btn-danger" onclick="deleteCurrentOrder()">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast уведомления -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <script src="js/admin.js"></script>
 </body>
