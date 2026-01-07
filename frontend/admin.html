@@ -1,1 +1,179 @@
+<!-- frontend/admin.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель | Управление поставками</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <aside class="sidebar">
+            <h2>⚙️ Админ-панель</h2>
+            <nav>
+                <a href="#directions" class="nav-link active">Направления</a>
+                <a href="#settings" class="nav-link">Настройки</a>
+                <a href="#orders" class="nav-link">Заявки</a>
+                <a href="#vehicle" class="nav-link">Загрузка машин</a>
+            </nav>
+        </aside>
 
+        <main class="admin-main">
+            <!-- Направления -->
+            <section id="directions" class="admin-section">
+                <h2>Направления</h2>
+                <div class="section-header">
+                    <button class="btn btn-primary" onclick="showAddDirectionModal()">
+                        + Добавить направление
+                    </button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Код</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="directionsTable">
+                        <!-- Заполняется динамически -->
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Настройки -->
+            <section id="settings" class="admin-section hidden">
+                <h2>Общие настройки</h2>
+                <form id="settingsForm" class="settings-form">
+                    <div class="form-group">
+                        <label>Адрес склада</label>
+                        <textarea name="warehouseAddress" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Минимум дней до поставки</label>
+                        <input type="number" name="minDaysBeforeDelivery" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Telegram Bot Token</label>
+                        <input type="password" name="telegramBotToken">
+                    </div>
+                    <div class="form-group">
+                        <label>Telegram Chat ID (для уведомлений)</label>
+                        <input type="text" name="telegramChatId">
+                    </div>
+                    <div class="form-group">
+                        <label>Режим работы склада</label>
+                        <input type="text" name="workHours" placeholder="Пн-Пт: 9:00 - 18:00">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Сохранить настройки</button>
+                </form>
+            </section>
+
+            <!-- Заявки -->
+            <section id="orders" class="admin-section hidden">
+                <h2>Заявки</h2>
+                <div class="filters">
+                    <select id="orderStatusFilter">
+                        <option value="">Все статусы</option>
+                        <option value="new">Новые</option>
+                        <option value="confirmed">Подтверждённые</option>
+                        <option value="in_progress">В работе</option>
+                        <option value="completed">Завершённые</option>
+                    </select>
+                    <input type="date" id="orderDateFilter">
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Дата</th>
+                            <th>Направление</th>
+                            <th>Клиент</th>
+                            <th>Груз</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTable">
+                        <!-- Заполняется динамически -->
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Загрузка машин -->
+            <section id="vehicle" class="admin-section hidden">
+                <h2>Планирование загрузки</h2>
+                <div class="vehicle-planning">
+                    <div class="date-selector">
+                        <label>Дата:</label>
+                        <input type="date" id="vehicleDate">
+                    </div>
+                    <div class="vehicle-stats" id="vehicleStats">
+                        <!-- Статистика загрузки -->
+                    </div>
+                    <div class="vehicle-orders" id="vehicleOrders">
+                        <!-- Заявки на дату -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Модальное окно добавления направления -->
+    <div id="directionModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeDirectionModal()">&times;</span>
+            <h3 id="directionModalTitle">Добавить направление</h3>
+            <form id="directionForm">
+                <input type="hidden" id="directionId">
+                <div class="form-group">
+                    <label>Название</label>
+                    <input type="text" id="directionName" required>
+                </div>
+                <div class="form-group">
+                    <label>Код</label>
+                    <input type="text" id="directionCode" required maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="directionActive" checked>
+                        Активно
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно заявки -->
+    <div id="orderModal" class="modal hidden">
+        <div class="modal-content modal-lg">
+            <span class="close-modal" onclick="closeOrderModal()">&times;</span>
+            <h3>Детали заявки #<span id="orderModalNumber"></span></h3>
+            <div id="orderModalContent">
+                <!-- Детали заявки -->
+            </div>
+            <div class="order-actions">
+                <select id="orderStatusSelect">
+                    <option value="new">Новая</option>
+                    <option value="confirmed">Подтверждена</option>
+                    <option value="in_progress">В работе</option>
+                    <option value="completed">Завершена</option>
+                    <option value="cancelled">Отменена</option>
+                </select>
+                <button class="btn btn-primary" onclick="updateOrderStatus()">
+                    Обновить статус
+                </button>
+                <button class="btn btn-secondary" onclick="sendToTelegram()">
+                    Отправить в Telegram
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>
