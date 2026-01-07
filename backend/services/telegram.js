@@ -1,26 +1,20 @@
 // backend/services/telegram.js
 const axios = require('axios');
+const config = require('../config');
 const { db } = require('./database');
 
 async function sendTelegramNotification(order) {
     const settings = db.getSettings();
-    const { telegramBotToken, telegramChatId } = settings;
+    const botToken = settings.telegramBotToken || config.telegram.botToken;
+    const chatId = settings.telegramChatId || config.telegram.chatId;
     
-    if (!telegramBotToken || !telegramChatId) {
-        console.log('Telegram не настроен, пропускаем отправку');
-        return;
+    if (!botToken || !chatId) {
+        console.log('⚠️ Telegram не настроен, пропускаем отправку');
+        return false;
     }
     
-    const cargoTypes = {
-        boxes: '📦 Короба',
-        pallets: '🏗️ Палеты',
-        mono_pallets: '📐 Моно-палеты'
-    };
-    
-    const deliveryMethods = {
-        pickup: '🚛 Забор',
-        dropoff: '📍 Привоз'
-    };
+    const cargoType = config.getCargoType(order.cargoType);
+    const deliveryMethod = config.getDeliveryMethod(order.deliveryMethod);
     
     const message = `
 🆕 *НОВАЯ ЗАЯВКА ${order.orderNumber}*
@@ -29,10 +23,10 @@ async function sendTelegramNotification(order) {
 📅 *Дата поставки:* ${formatDate(order.deliveryDate)}
 📅 *Дата ${order.deliveryMethod === 'pickup' ? 'забора' : 'привоза'}:* ${formatDate(order.pickupDate)}
 
-${deliveryMethods[order.deliveryMethod]}
+${deliveryMethod.icon} ${deliveryMethod.name}
 ${order.pickupAddress ? `📌 *Адрес забора:*\n${order.pickupAddress}` : ''}
 
-${cargoTypes[order.cargoType]} × ${order.quantity}
+${cargoType.icon} ${cargoType.name} × ${order.quantity}
 
 👤 *Контакт:*
 • Имя: ${order.contact.name}
@@ -43,14 +37,52 @@ ${order.comment ? `💬 *Комментарий:* ${order.comment}` : ''}
     `.trim();
     
     try {
-        await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-            chat_id: telegramChatId,
-            text: message,
-            parse_mode: 'Markdown'
-        });
-        console.log('Уведомление отправлено в Telegram');
+        await axios.post(
+            `https://api.telegram.org/bot${botToken}/sendMessage`,
+            {
+                chat_id: chatId,
+                text: message,
+                parse_mode: 'Markdown'
+            }
+        );
+        console.log('✅ Уведомление отправлено в Telegram');
+        return true;
     } catch (error) {
-        console.error('Ошибка отправки в Telegram:', error.message);
+        console.error('❌ Ошибка отправки в Telegram:', error.message);
+        return false;
+    }
+}
+
+async function sendStatusUpdate(order, newStatus) {
+    const settings = db.getSettings();
+    const botToken = settings.telegramBotToken || config.telegram.botToken;
+    const chatId = settings.telegramChatId || config.telegram.chatId;
+    
+    if (!botToken || !chatId) return false;
+    
+    const statusName = config.getStatusName(newStatus);
+    
+    const message = `
+📋 *ОБНОВЛЕНИЕ ЗАЯВКИ ${order.orderNumber}*
+
+Новый статус: *${statusName}*
+Клиент: ${order.contact.name}
+Телефон: ${order.contact.phone}
+    `.trim();
+    
+    try {
+        await axios.post(
+            `https://api.telegram.org/bot${botToken}/sendMessage`,
+            {
+                chat_id: chatId,
+                text: message,
+                parse_mode: 'Markdown'
+            }
+        );
+        return true;
+    } catch (error) {
+        console.error('❌ Ошибка отправки в Telegram:', error.message);
+        return false;
     }
 }
 
@@ -63,4 +95,7 @@ function formatDate(dateStr) {
     });
 }
 
-module.exports = { sendTelegramNotification };
+module.exports = { 
+    sendTelegramNotification,
+    sendStatusUpdate 
+};
