@@ -1,16 +1,14 @@
 // backend/server.js
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
+const config = require('./config');
 const ordersRouter = require('./routes/orders');
 const adminRouter = require('./routes/admin');
 
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// CORS с настройками из конфига
+app.use(cors(config.cors));
 app.use(express.json());
 
 // API routes
@@ -20,6 +18,21 @@ app.use('/api/admin', adminRouter);
 // Static files
 app.use(express.static('../frontend'));
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// Health check
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString() 
+    });
+});
+
+app.listen(config.server.port, () => {
+    console.log(`🚀 Server running on http://${config.server.host}:${config.server.port}`);
+    console.log(`📦 Data directory: ${config.paths.dataDir}`);
+    
+    if (config.telegram.botToken) {
+        console.log('✅ Telegram notifications enabled');
+    } else {
+        console.log('⚠️ Telegram notifications disabled (no token)');
+    }
 });
