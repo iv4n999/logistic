@@ -1,1 +1,167 @@
+<!-- frontend/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление поставки</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 Оформление поставки</h1>
+        </header>
 
+        <form id="orderForm" class="order-form">
+            <!-- Шаг 1: Направление -->
+            <div class="form-section">
+                <h2>1. Выберите направление</h2>
+                <div id="directionsContainer" class="directions-grid">
+                    <!-- Заполняется динамически -->
+                </div>
+            </div>
+
+            <!-- Шаг 2: Дата поставки -->
+            <div class="form-section">
+                <h2>2. Дата поставки на склад</h2>
+                <div class="date-picker-container">
+                    <input type="date" id="deliveryDate" name="deliveryDate" required>
+                    <div id="availableSlots" class="slots-container"></div>
+                </div>
+            </div>
+
+            <!-- Шаг 3: Способ доставки -->
+            <div class="form-section">
+                <h2>3. Способ доставки груза к нам</h2>
+                <div class="delivery-options">
+                    <label class="option-card">
+                        <input type="radio" name="deliveryMethod" value="pickup" required>
+                        <div class="option-content">
+                            <span class="icon">🚛</span>
+                            <span class="title">Мы заберём</span>
+                            <span class="desc">Укажите адрес забора</span>
+                        </div>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="deliveryMethod" value="dropoff">
+                        <div class="option-content">
+                            <span class="icon">📍</span>
+                            <span class="title">Привезу сам</span>
+                            <span class="desc">На наш склад</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Дата забора/привоза -->
+                <div id="pickupDateSection" class="subsection hidden">
+                    <h3>Дата забора груза</h3>
+                    <input type="date" id="pickupDate" name="pickupDate">
+                    <p class="hint">⚠️ Заявки принимаются минимум за 1 день до даты поставки</p>
+                </div>
+
+                <!-- Адрес забора (если мы забираем) -->
+                <div id="pickupAddressSection" class="subsection hidden">
+                    <h3>Адрес забора</h3>
+                    <textarea id="pickupAddress" name="pickupAddress" 
+                              placeholder="Город, улица, дом, строение, этаж, комментарии для водителя..."
+                              rows="3"></textarea>
+                </div>
+
+                <!-- Наш адрес (если привозят) -->
+                <div id="ourAddressSection" class="subsection hidden">
+                    <div class="our-address-card">
+                        <h3>📍 Адрес нашего склада</h3>
+                        <p id="warehouseAddress">г. Москва, ул. Складская, д. 15, стр. 2</p>
+                        <p class="work-hours">Пн-Пт: 9:00 - 18:00, Сб: 10:00 - 15:00</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Шаг 4: Тип поставки -->
+            <div class="form-section">
+                <h2>4. Тип поставки</h2>
+                <div class="cargo-type-options">
+                    <label class="cargo-option">
+                        <input type="radio" name="cargoType" value="boxes" required>
+                        <div class="cargo-content">
+                            <span class="cargo-icon">📦</span>
+                            <span class="cargo-title">Короба</span>
+                        </div>
+                    </label>
+                    <label class="cargo-option">
+                        <input type="radio" name="cargoType" value="pallets">
+                        <div class="cargo-content">
+                            <span class="cargo-icon">🏗️</span>
+                            <span class="cargo-title">Палеты</span>
+                        </div>
+                    </label>
+                    <label class="cargo-option">
+                        <input type="radio" name="cargoType" value="mono_pallets">
+                        <div class="cargo-content">
+                            <span class="cargo-icon">📐</span>
+                            <span class="cargo-title">Моно-палеты</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Количество -->
+                <div class="quantity-section">
+                    <label for="quantity">Количество:</label>
+                    <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+                    <span id="quantityUnit">шт.</span>
+                </div>
+            </div>
+
+            <!-- Шаг 5: Контакты -->
+            <div class="form-section">
+                <h2>5. Контактные данные</h2>
+                <div class="contact-fields">
+                    <div class="field">
+                        <label for="contactName">Имя</label>
+                        <input type="text" id="contactName" name="contactName" required>
+                    </div>
+                    <div class="field">
+                        <label for="contactPhone">Телефон</label>
+                        <input type="tel" id="contactPhone" name="contactPhone" 
+                               placeholder="+7 (___) ___-__-__" required>
+                    </div>
+                    <div class="field">
+                        <label for="contactTelegram">Telegram (опционально)</label>
+                        <input type="text" id="contactTelegram" name="contactTelegram" 
+                               placeholder="@username">
+                    </div>
+                    <div class="field full-width">
+                        <label for="comment">Комментарий к заказу</label>
+                        <textarea id="comment" name="comment" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Итого и отправка -->
+            <div class="form-section summary">
+                <h2>📋 Итого</h2>
+                <div id="orderSummary" class="order-summary">
+                    <p>Заполните форму для просмотра итогов</p>
+                </div>
+                <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                    Отправить заявку
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div id="successModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="success-icon">✅</div>
+            <h2>Заявка отправлена!</h2>
+            <p>Номер заявки: <strong id="orderNumber"></strong></p>
+            <p>Мы свяжемся с вами для подтверждения</p>
+            <button onclick="location.reload()" class="new-order-btn">Новая заявка</button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
