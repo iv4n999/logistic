@@ -1,4 +1,4 @@
-// backend/services/database.js - ПОЛНЫЙ ОБНОВЛЁННЫЙ КОД
+// backend/services/database.js - ПОЛНЫЙ КОД
 const fs = require('fs');
 const path = require('path');
 
@@ -18,7 +18,8 @@ const defaultSettings = {
     warehouseAddress: 'г. Москва, ул. Складская, д. 15, стр. 2',
     workHours: 'Пн-Пт: 9:00 - 18:00',
     telegramBotToken: '',
-    telegramChatId: ''
+    telegramChatId: '',
+    adminPassword: 'admin123'
 };
 
 const defaultDirections = [
