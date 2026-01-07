@@ -1,4 +1,4 @@
-// frontend/js/app.js - ПОЛНЫЙ НОВЫЙ КОД
+// frontend/js/app.js - ПОЛНЫЙ ИСПРАВЛЕННЫЙ КОД
 
 const API_URL = '/api';
 
@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadSettings();
     await loadDirections();
     initEventListeners();
+    initPhoneMask();
+    initTelegramMask();
 });
 
 async function loadSettings() {
@@ -57,6 +59,106 @@ async function loadSlots(directionId) {
     } catch (e) {
         console.error('Ошибка загрузки слотов:', e);
     }
+}
+
+// ==================== МАСКА ТЕЛЕФОНА ====================
+
+function initPhoneMask() {
+    const phoneInput = document.getElementById('contactPhone');
+    
+    // Устанавливаем +7 по умолчанию
+    phoneInput.value = '+7 ';
+    
+    phoneInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, ''); // только цифры
+        
+        // Если начинается с 8, заменяем на 7
+        if (value.startsWith('8')) {
+            value = '7' + value.slice(1);
+        }
+        
+        // Если нет 7 в начале, добавляем
+        if (!value.startsWith('7')) {
+            value = '7' + value;
+        }
+        
+        // Ограничиваем 11 цифрами
+        value = value.slice(0, 11);
+        
+        // Форматируем
+        let formatted = '+7';
+        if (value.length > 1) {
+            formatted += ' (' + value.slice(1, 4);
+        }
+        if (value.length > 4) {
+            formatted += ') ' + value.slice(4, 7);
+        }
+        if (value.length > 7) {
+            formatted += '-' + value.slice(7, 9);
+        }
+        if (value.length > 9) {
+            formatted += '-' + value.slice(9, 11);
+        }
+        
+        e.target.value = formatted;
+        updateSummary();
+    });
+    
+    // Предотвращаем удаление +7
+    phoneInput.addEventListener('keydown', (e) => {
+        const cursorPos = e.target.selectionStart;
+        if ((e.key === 'Backspace' || e.key === 'Delete') && cursorPos <= 3) {
+            e.preventDefault();
+        }
+    });
+    
+    // При фокусе ставим курсор после +7
+    phoneInput.addEventListener('focus', (e) => {
+        if (e.target.value === '+7 ' || e.target.value === '+7') {
+            setTimeout(() => {
+                e.target.setSelectionRange(3, 3);
+            }, 0);
+        }
+    });
+}
+
+// ==================== МАСКА TELEGRAM ====================
+
+function initTelegramMask() {
+    const telegramInput = document.getElementById('contactTelegram');
+    
+    telegramInput.addEventListener('input', (e) => {
+        let value = e.target.value;
+        
+        // Удаляем все @ кроме первого
+        value = value.replace(/@/g, '');
+        
+        // Удаляем недопустимые символы (оставляем буквы, цифры, _)
+        value = value.replace(/[^a-zA-Z0-9_]/g, '');
+        
+        // Добавляем @ в начало
+        if (value.length > 0) {
+            e.target.value = '@' + value;
+        } else {
+            e.target.value = '';
+        }
+        
+        updateSummary();
+    });
+    
+    // При фокусе добавляем @ если пусто
+    telegramInput.addEventListener('focus', (e) => {
+        if (e.target.value === '') {
+            e.target.value = '@';
+        }
+    });
+    
+    // При потере фокуса убираем @ если только он один
+    telegramInput.addEventListener('blur', (e) => {
+        if (e.target.value === '@') {
+            e.target.value = '';
+        }
+    });
 }
 
 // ==================== РЕНДЕР ====================
@@ -178,30 +280,34 @@ function initEventListeners() {
         });
     });
     
-    // Количество
-    document.getElementById('quantity').addEventListener('input', (e) => {
+    // Количество - поле ввода
+    const quantityInput = document.getElementById('quantity');
+    quantityInput.addEventListener('input', (e) => {
         state.selected.quantity = Math.max(1, parseInt(e.target.value) || 1);
         updateSummary();
     });
     
+    // Количество - кнопка МИНУС
     document.getElementById('quantityMinus').addEventListener('click', () => {
         const input = document.getElementById('quantity');
-        const val = Math.max(1, parseInt(input.value) - 1);
+        const val = Math.max(1, parseInt(input.value || 1) - 1);
         input.value = val;
         state.selected.quantity = val;
         updateSummary();
     });
     
+    // Количество - кнопка ПЛЮС
     document.getElementById('quantityPlus').addEventListener('click', () => {
         const input = document.getElementById('quantity');
-        const val = parseInt(input.value) + 1;
+        const currentVal = parseInt(input.value) || 0;
+        const val = currentVal + 1;
         input.value = val;
         state.selected.quantity = val;
         updateSummary();
     });
     
-    // Контакты
-    ['contactName', 'contactPhone', 'contactTelegram', 'pickupAddress', 'comment'].forEach(id => {
+    // Остальные поля
+    ['contactName', 'pickupAddress', 'comment'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', updateSummary);
     });
@@ -269,7 +375,9 @@ function updateSummary() {
     const pickupAddress = document.getElementById('pickupAddress').value.trim();
     const pickupDate = document.getElementById('pickupDate').value;
     
-    // Проверка заполненности
+    // Проверка заполненности (телефон минимум 18 символов: +7 (XXX) XXX-XX-XX)
+    const isPhoneComplete = contactPhone.length >= 18;
+    
     const isComplete = 
         state.selected.direction &&
         state.selected.date &&
@@ -277,7 +385,7 @@ function updateSummary() {
         state.selected.cargoType &&
         state.selected.quantity > 0 &&
         contactName &&
-        contactPhone &&
+        isPhoneComplete &&
         pickupDate &&
         (state.selected.deliveryMethod === 'dropoff' || pickupAddress);
     
@@ -346,6 +454,13 @@ async function handleSubmit(e) {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span>Отправка...</span>';
     
+    // Получаем телефон без форматирования для отправки
+    const phoneRaw = document.getElementById('contactPhone').value;
+    
+    // Получаем Telegram без @ для проверки пустоты
+    const telegramValue = document.getElementById('contactTelegram').value.trim();
+    const telegramClean = telegramValue === '@' ? '' : telegramValue;
+    
     const formData = {
         direction: state.selected.direction,
         deliveryDate: state.selected.date,
@@ -358,8 +473,8 @@ async function handleSubmit(e) {
         quantity: state.selected.quantity,
         contact: {
             name: document.getElementById('contactName').value.trim(),
-            phone: document.getElementById('contactPhone').value.trim(),
-            telegram: document.getElementById('contactTelegram').value.trim()
+            phone: phoneRaw,
+            telegram: telegramClean
         },
         comment: document.getElementById('comment').value.trim()
     };
