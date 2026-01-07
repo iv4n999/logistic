@@ -1,23 +1,28 @@
-// backend/routes/orders.js
+// backend/routes/orders.js - ПОЛНЫЙ ОБНОВЛЁННЫЙ КОД
 const express = require('express');
 const router = express.Router();
 const { sendTelegramNotification } = require('../services/telegram');
 const { db } = require('../services/database');
 
-// Получить направления
+// Получить направления (активные)
 router.get('/directions', (req, res) => {
-    const directions = db.getDirections();
+    const directions = db.getDirections().filter(d => d.active);
     res.json(directions);
 });
 
-// Получить настройки
+// Получить настройки (публичные)
 router.get('/settings', (req, res) => {
     const settings = db.getSettings();
     res.json({
         warehouseAddress: settings.warehouseAddress,
-        minDaysBeforeDelivery: settings.minDaysBeforeDelivery,
         workHours: settings.workHours
     });
+});
+
+// Получить слоты для направления
+router.get('/slots/:directionId', (req, res) => {
+    const slots = db.getSlots(parseInt(req.params.directionId));
+    res.json(slots);
 });
 
 // Создать заявку
@@ -25,10 +30,32 @@ router.post('/orders', async (req, res) => {
     try {
         const orderData = req.body;
         
+        // Проверяем доступность слота
+        const directionId = orderData.direction?.id;
+        const date = orderData.deliveryDate;
+        
+        if (directionId && date) {
+            const slots = db.getSlots(directionId);
+            const slot = slots.find(s => s.date === date);
+            
+            if (!slot) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Эта дата недоступна для выбранного направления'
+                });
+            }
+            
+            if (slot.limit > 0 && slot.booked >= slot.limit) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'На эту дату больше нет свободных мест'
+                });
+            }
+        }
+        
         // Генерируем номер заявки
         const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
         
-        // Сохраняем заявку
         const order = {
             orderNumber,
             ...orderData,
