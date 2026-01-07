@@ -1,6 +1,9 @@
-// frontend/js/admin.js - ПОЛНЫЙ НОВЫЙ КОД
+// frontend/js/admin.js - ПОЛНЫЙ КОД С АВТОРИЗАЦИЕЙ
 
 const API_URL = '/api';
+
+// Токен авторизации
+let authToken = localStorage.getItem('adminToken');
 
 // Состояние
 const adminState = {
@@ -12,15 +15,115 @@ const adminState = {
     currentDirectionId: null
 };
 
-// ==================== ИНИЦИАЛИЗАЦИЯ ====================
+// ==================== АВТОРИЗАЦИЯ ====================
 
 document.addEventListener('DOMContentLoaded', async () => {
+    await checkAuth();
+});
+
+async function checkAuth() {
+    if (!authToken) {
+        showLoginScreen();
+        return;
+    }
+    
+    try {
+        const res = await fetch(`${API_URL}/auth/check`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await res.json();
+        
+        if (data.authorized) {
+            showAdminPanel();
+        } else {
+            localStorage.removeItem('adminToken');
+            authToken = null;
+            showLoginScreen();
+        }
+    } catch (e) {
+        showLoginScreen();
+    }
+}
+
+function showLoginScreen() {
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('adminPanel').classList.add('hidden');
+    
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+    
+    try {
+        const res = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            authToken = data.token;
+            localStorage.setItem('adminToken', authToken);
+            errorEl.classList.add('hidden');
+            showAdminPanel();
+        } else {
+            errorEl.classList.remove('hidden');
+            document.getElementById('loginPassword').value = '';
+        }
+    } catch (e) {
+        errorEl.classList.remove('hidden');
+    }
+}
+
+async function logout() {
+    try {
+        await fetch(`${API_URL}/auth/logout`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+    } catch (e) {}
+    
+    localStorage.removeItem('adminToken');
+    authToken = null;
+    location.reload();
+}
+
+async function showAdminPanel() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('adminPanel').classList.remove('hidden');
+    
     initNavigation();
+    initMobileMenu();
     await loadOrders();
     await loadDirections();
     await loadSettings();
     initEventListeners();
-});
+}
+
+// Добавляем токен ко всем запросам
+async function fetchWithAuth(url, options = {}) {
+    const headers = {
+        ...options.headers,
+        'Authorization': `Bearer ${authToken}`
+    };
+    
+    const res = await fetch(url, { ...options, headers });
+    
+    if (res.status === 401) {
+        logout();
+        throw new Error('Unauthorized');
+    }
+    
+    return res;
+}
+
+// ==================== НАВИГАЦИЯ ====================
 
 function initNavigation() {
     document.querySelectorAll('.nav-item[data-section]').forEach(link => {
@@ -28,15 +131,15 @@ function initNavigation() {
             e.preventDefault();
             const sectionId = link.dataset.section;
             
-            // Обновляем навигацию
             document.querySelectorAll('.nav-item').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
             
-            // Показываем секцию
             document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
             
-            // Обновляем данные
+            // Закрываем мобильное меню
+            closeMobileMenu();
+            
             if (sectionId === 'orders') loadOrders();
             if (sectionId === 'directions') loadDirections();
             if (sectionId === 'slots') loadDirectionsForSlots();
@@ -44,20 +147,31 @@ function initNavigation() {
     });
 }
 
+function initMobileMenu() {
+    const toggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    toggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+        document.body.classList.toggle('menu-open');
+    });
+    
+    overlay.addEventListener('click', closeMobileMenu);
+}
+
+function closeMobileMenu() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('open');
+    document.body.classList.remove('menu-open');
+}
+
 function initEventListeners() {
-    // Фильтр заявок
     document.getElementById('orderStatusFilter').addEventListener('change', loadOrders);
-    
-    // Удаление завершённых
     document.getElementById('deleteCompletedBtn').addEventListener('click', deleteCompletedOrders);
-    
-    // Форма направления
     document.getElementById('directionForm').addEventListener('submit', handleDirectionSave);
-    
-    // Форма настроек
     document.getElementById('settingsForm').addEventListener('submit', handleSettingsSave);
-    
-    // Форма слота
     document.getElementById('slotForm').addEventListener('submit', handleSlotSave);
 }
 
@@ -69,12 +183,14 @@ async function loadOrders() {
         let url = `${API_URL}/admin/orders`;
         if (status) url += `?status=${status}`;
         
-        const res = await fetch(url);
+        const res = await fetchWithAuth(url);
         adminState.orders = await res.json();
         renderOrdersTable();
+        renderOrdersCards();
     } catch (e) {
-        console.error('Ошибка:', e);
-        showToast('Ошибка загрузки заявок', 'error');
+        if (e.message !== 'Unauthorized') {
+            showToast('Ошибка загрузки заявок', 'error');
+        }
     }
 }
 
@@ -84,9 +200,7 @@ function renderOrdersTable() {
     if (adminState.orders.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align: center; padding: 40px; color: var(--color-gray-400);">
-                    Заявки не найдены
-                </td>
+                <td colspan="7" class="empty-cell">Заявки не найдены</td>
             </tr>
         `;
         return;
@@ -94,15 +208,12 @@ function renderOrdersTable() {
     
     const cargoNames = { boxes: 'Короба', pallets: 'Палеты', mono_pallets: 'Моно-палеты' };
     const statusNames = {
-        new: 'Новая',
-        confirmed: 'Подтверждена',
-        in_progress: 'В работе',
-        completed: 'Завершена',
-        cancelled: 'Отменена'
+        new: 'Новая', confirmed: 'Подтверждена', in_progress: 'В работе',
+        completed: 'Завершена', cancelled: 'Отменена'
     };
     
     tbody.innerHTML = adminState.orders.map(order => `
-        <tr>
+        <tr onclick="openOrderModal('${order.orderNumber}')">
             <td><span class="table-order-number">${order.orderNumber}</span></td>
             <td>${order.direction?.name || '—'}</td>
             <td>
@@ -112,12 +223,50 @@ function renderOrdersTable() {
             <td>${formatDate(order.deliveryDate)}</td>
             <td>${cargoNames[order.cargoType] || order.cargoType} × ${order.quantity}</td>
             <td><span class="status-badge status-${order.status}">${statusNames[order.status]}</span></td>
-            <td>
-                <button class="btn btn-ghost btn-sm" onclick="openOrderModal('${order.orderNumber}')">
-                    Открыть
-                </button>
-            </td>
+            <td><button class="btn btn-ghost btn-sm">→</button></td>
         </tr>
+    `).join('');
+}
+
+function renderOrdersCards() {
+    const container = document.getElementById('ordersCards');
+    
+    if (adminState.orders.length === 0) {
+        container.innerHTML = '<p class="empty-message">Заявки не найдены</p>';
+        return;
+    }
+    
+    const cargoNames = { boxes: 'Короба', pallets: 'Палеты', mono_pallets: 'Моно-палеты' };
+    const statusNames = {
+        new: 'Новая', confirmed: 'Подтверждена', in_progress: 'В работе',
+        completed: 'Завершена', cancelled: 'Отменена'
+    };
+    
+    container.innerHTML = adminState.orders.map(order => `
+        <div class="order-card" onclick="openOrderModal('${order.orderNumber}')">
+            <div class="order-card-header">
+                <span class="order-card-number">${order.orderNumber}</span>
+                <span class="status-badge status-${order.status}">${statusNames[order.status]}</span>
+            </div>
+            <div class="order-card-body">
+                <div class="order-card-row">
+                    <span class="label">Направление</span>
+                    <span class="value">${order.direction?.name || '—'}</span>
+                </div>
+                <div class="order-card-row">
+                    <span class="label">Клиент</span>
+                    <span class="value">${order.contact?.name || '—'}</span>
+                </div>
+                <div class="order-card-row">
+                    <span class="label">Дата поставки</span>
+                    <span class="value">${formatDate(order.deliveryDate)}</span>
+                </div>
+                <div class="order-card-row">
+                    <span class="label">Груз</span>
+                    <span class="value">${cargoNames[order.cargoType]} × ${order.quantity}</span>
+                </div>
+            </div>
+        </div>
     `).join('');
 }
 
@@ -187,10 +336,6 @@ function openOrderModal(orderNumber) {
                     <span class="order-detail-value">${order.comment}</span>
                 </div>
             ` : ''}
-            <div class="order-detail-row">
-                <span class="order-detail-label">Создана</span>
-                <span class="order-detail-value">${formatDateTime(order.createdAt)}</span>
-            </div>
         </div>
     `;
     
@@ -208,19 +353,17 @@ async function updateOrderStatus() {
     const newStatus = document.getElementById('orderStatusSelect').value;
     
     try {
-        const res = await fetch(`${API_URL}/admin/orders/${adminState.currentOrder.orderNumber}/status`, {
+        await fetchWithAuth(`${API_URL}/admin/orders/${adminState.currentOrder.orderNumber}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
         });
         
-        if (res.ok) {
-            showToast('Статус обновлён', 'success');
-            await loadOrders();
-            adminState.currentOrder.status = newStatus;
-        }
+        showToast('Статус обновлён', 'success');
+        await loadOrders();
+        adminState.currentOrder.status = newStatus;
     } catch (e) {
-        showToast('Ошибка обновления', 'error');
+        showToast('Ошибка', 'error');
     }
 }
 
@@ -228,15 +371,10 @@ async function sendToTelegram() {
     if (!adminState.currentOrder) return;
     
     try {
-        const res = await fetch(`${API_URL}/admin/orders/${adminState.currentOrder.orderNumber}/telegram`, {
+        await fetchWithAuth(`${API_URL}/admin/orders/${adminState.currentOrder.orderNumber}/telegram`, {
             method: 'POST'
         });
-        
-        if (res.ok) {
-            showToast('Отправлено в Telegram', 'success');
-        } else {
-            showToast('Ошибка отправки', 'error');
-        }
+        showToast('Отправлено в Telegram', 'success');
     } catch (e) {
         showToast('Ошибка отправки', 'error');
     }
@@ -247,17 +385,14 @@ async function deleteCurrentOrder() {
     if (!confirm(`Удалить заявку ${adminState.currentOrder.orderNumber}?`)) return;
     
     try {
-        const res = await fetch(`${API_URL}/admin/orders/${adminState.currentOrder.orderNumber}`, {
+        await fetchWithAuth(`${API_URL}/admin/orders/${adminState.currentOrder.orderNumber}`, {
             method: 'DELETE'
         });
-        
-        if (res.ok) {
-            showToast('Заявка удалена', 'success');
-            closeOrderModal();
-            await loadOrders();
-        }
+        showToast('Заявка удалена', 'success');
+        closeOrderModal();
+        await loadOrders();
     } catch (e) {
-        showToast('Ошибка удаления', 'error');
+        showToast('Ошибка', 'error');
     }
 }
 
@@ -265,15 +400,14 @@ async function deleteCompletedOrders() {
     if (!confirm('Удалить все завершённые и отменённые заявки?')) return;
     
     try {
-        const res = await fetch(`${API_URL}/admin/orders/completed`, {
+        const res = await fetchWithAuth(`${API_URL}/admin/orders/completed`, {
             method: 'DELETE'
         });
-        
         const result = await res.json();
-        showToast(`Удалено заявок: ${result.deleted}`, 'success');
+        showToast(`Удалено: ${result.deleted}`, 'success');
         await loadOrders();
     } catch (e) {
-        showToast('Ошибка удаления', 'error');
+        showToast('Ошибка', 'error');
     }
 }
 
@@ -281,25 +415,17 @@ async function deleteCompletedOrders() {
 
 async function loadDirections() {
     try {
-        const res = await fetch(`${API_URL}/admin/directions`);
+        const res = await fetchWithAuth(`${API_URL}/admin/directions`);
         adminState.directions = await res.json();
         renderDirectionsTable();
-    } catch (e) {
-        showToast('Ошибка загрузки', 'error');
-    }
+    } catch (e) {}
 }
 
 function renderDirectionsTable() {
     const tbody = document.getElementById('directionsTableBody');
     
     if (adminState.directions.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" style="text-align: center; padding: 40px; color: var(--color-gray-400);">
-                    Направления не добавлены
-                </td>
-            </tr>
-        `;
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">Направления не добавлены</td></tr>';
         return;
     }
     
@@ -313,8 +439,8 @@ function renderDirectionsTable() {
                 </span>
             </td>
             <td>
-                <button class="btn btn-ghost btn-sm" onclick="editDirection(${dir.id})">Изменить</button>
-                <button class="btn btn-ghost btn-sm" onclick="deleteDirection(${dir.id})">Удалить</button>
+                <button class="btn btn-ghost btn-sm" onclick="editDirection(${dir.id})">✏️</button>
+                <button class="btn btn-ghost btn-sm" onclick="deleteDirection(${dir.id})">🗑</button>
             </td>
         </tr>
     `).join('');
@@ -322,7 +448,7 @@ function renderDirectionsTable() {
 
 function showDirectionModal(direction = null) {
     document.getElementById('directionModalTitle').textContent = 
-        direction ? 'Редактировать направление' : 'Добавить направление';
+        direction ? 'Редактировать' : 'Добавить направление';
     document.getElementById('directionId').value = direction?.id || '';
     document.getElementById('directionName').value = direction?.name || '';
     document.getElementById('directionCode').value = direction?.code || '';
@@ -352,35 +478,32 @@ async function handleDirectionSave(e) {
     if (id) data.id = parseInt(id);
     
     try {
-        const res = await fetch(`${API_URL}/admin/directions`, {
+        await fetchWithAuth(`${API_URL}/admin/directions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        
-        if (res.ok) {
-            showToast('Направление сохранено', 'success');
-            closeDirectionModal();
-            await loadDirections();
-        }
+        showToast('Сохранено', 'success');
+        closeDirectionModal();
+        await loadDirections();
     } catch (e) {
-        showToast('Ошибка сохранения', 'error');
+        showToast('Ошибка', 'error');
     }
 }
 
 async function deleteDirection(id) {
-    if (!confirm('Удалить это направление?')) return;
+    if (!confirm('Удалить направление?')) return;
     
     try {
-        await fetch(`${API_URL}/admin/directions/${id}`, { method: 'DELETE' });
-        showToast('Направление удалено', 'success');
+        await fetchWithAuth(`${API_URL}/admin/directions/${id}`, { method: 'DELETE' });
+        showToast('Удалено', 'success');
         await loadDirections();
     } catch (e) {
-        showToast('Ошибка удаления', 'error');
+        showToast('Ошибка', 'error');
     }
 }
 
-// ==================== СЛОТЫ (ДАТЫ ПОСТАВОК) ====================
+// ==================== СЛОТЫ ====================
 
 async function loadDirectionsForSlots() {
     await loadDirections();
@@ -411,30 +534,27 @@ async function selectDirectionForSlots(directionId, directionName) {
 
 async function loadSlotsForDirection(directionId) {
     try {
-        const res = await fetch(`${API_URL}/admin/slots/${directionId}`);
+        const res = await fetchWithAuth(`${API_URL}/admin/slots/${directionId}`);
         const slots = await res.json();
         adminState.slots[directionId] = slots;
         renderSlotsList(slots);
-    } catch (e) {
-        showToast('Ошибка загрузки слотов', 'error');
-    }
+    } catch (e) {}
 }
 
 function renderSlotsList(slots) {
     const container = document.getElementById('slotsList');
     
     if (slots.length === 0) {
-        container.innerHTML = '<p style="color: var(--color-gray-400); padding: 20px;">Даты не добавлены</p>';
+        container.innerHTML = '<p class="empty-message">Даты не добавлены</p>';
         return;
     }
     
-    // Сортируем по дате
     slots.sort((a, b) => new Date(a.date) - new Date(b.date));
     
     container.innerHTML = slots.map(slot => {
         const date = new Date(slot.date);
-        const dayName = date.toLocaleDateString('ru-RU', { weekday: 'long' });
-        const dateStr = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        const dayName = date.toLocaleDateString('ru-RU', { weekday: 'short' });
+        const dateStr = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
         
         return `
             <div class="slot-card">
@@ -452,7 +572,6 @@ function renderSlotsList(slots) {
 function showAddSlotModal() {
     if (!adminState.currentDirectionId) return;
     
-    // Минимальная дата — завтра
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     document.getElementById('slotDate').min = tomorrow.toISOString().split('T')[0];
@@ -476,36 +595,30 @@ async function handleSlotSave(e) {
     };
     
     try {
-        const res = await fetch(`${API_URL}/admin/slots`, {
+        await fetchWithAuth(`${API_URL}/admin/slots`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        
-        if (res.ok) {
-            showToast('Дата добавлена', 'success');
-            closeSlotModal();
-            await loadSlotsForDirection(adminState.currentDirectionId);
-        } else {
-            const err = await res.json();
-            showToast(err.message || 'Ошибка', 'error');
-        }
+        showToast('Дата добавлена', 'success');
+        closeSlotModal();
+        await loadSlotsForDirection(adminState.currentDirectionId);
     } catch (e) {
-        showToast('Ошибка сохранения', 'error');
+        showToast('Ошибка', 'error');
     }
 }
 
 async function deleteSlot(date) {
-    if (!confirm('Удалить эту дату?')) return;
+    if (!confirm('Удалить дату?')) return;
     
     try {
-        await fetch(`${API_URL}/admin/slots/${adminState.currentDirectionId}/${date}`, {
+        await fetchWithAuth(`${API_URL}/admin/slots/${adminState.currentDirectionId}/${date}`, {
             method: 'DELETE'
         });
-        showToast('Дата удалена', 'success');
+        showToast('Удалено', 'success');
         await loadSlotsForDirection(adminState.currentDirectionId);
     } catch (e) {
-        showToast('Ошибка удаления', 'error');
+        showToast('Ошибка', 'error');
     }
 }
 
@@ -513,7 +626,7 @@ async function deleteSlot(date) {
 
 async function loadSettings() {
     try {
-        const res = await fetch(`${API_URL}/admin/settings`);
+        const res = await fetchWithAuth(`${API_URL}/admin/settings`);
         adminState.settings = await res.json();
         
         const form = document.getElementById('settingsForm');
@@ -521,9 +634,8 @@ async function loadSettings() {
         form.workHours.value = adminState.settings.workHours || '';
         form.telegramBotToken.value = adminState.settings.telegramBotToken || '';
         form.telegramChatId.value = adminState.settings.telegramChatId || '';
-    } catch (e) {
-        console.error('Ошибка:', e);
-    }
+        form.adminPassword.value = '';
+    } catch (e) {}
 }
 
 async function handleSettingsSave(e) {
@@ -537,18 +649,21 @@ async function handleSettingsSave(e) {
         telegramChatId: form.telegramChatId.value.trim()
     };
     
+    // Пароль только если введён
+    if (form.adminPassword.value.trim()) {
+        data.adminPassword = form.adminPassword.value.trim();
+    }
+    
     try {
-        const res = await fetch(`${API_URL}/admin/settings`, {
+        await fetchWithAuth(`${API_URL}/admin/settings`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        
-        if (res.ok) {
-            showToast('Настройки сохранены', 'success');
-        }
+        showToast('Настройки сохранены', 'success');
+        form.adminPassword.value = '';
     } catch (e) {
-        showToast('Ошибка сохранения', 'error');
+        showToast('Ошибка', 'error');
     }
 }
 
@@ -557,20 +672,7 @@ async function handleSettingsSave(e) {
 function formatDate(dateStr) {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    });
-}
-
-function formatDateTime(dateStr) {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleString('ru-RU', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: 'numeric', month: 'short', year: 'numeric'
     });
 }
 
@@ -583,7 +685,6 @@ function showToast(message, type = 'info') {
     
     setTimeout(() => {
         toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100%)';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
