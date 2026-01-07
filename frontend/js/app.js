@@ -1,121 +1,164 @@
-// frontend/js/app.js
-const API_URL = 'http://localhost:3000/api';
+// frontend/js/app.js - ПОЛНЫЙ НОВЫЙ КОД
 
-// Состояние формы
+const API_URL = '/api';
+
+// Состояние
 const state = {
     directions: [],
+    slots: {},
     settings: {},
-    selectedDirection: null,
-    deliveryDate: null,
-    pickupDate: null,
-    deliveryMethod: null,
-    cargoType: null,
-    quantity: 1
+    selected: {
+        direction: null,
+        date: null,
+        deliveryMethod: null,
+        cargoType: null,
+        quantity: 1
+    }
 };
 
-// Инициализация
+// ==================== ИНИЦИАЛИЗАЦИЯ ====================
+
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadDirections();
     await loadSettings();
+    await loadDirections();
     initEventListeners();
-    setMinDates();
 });
 
-// Загрузка направлений с сервера
-async function loadDirections() {
-    try {
-        const response = await fetch(`${API_URL}/directions`);
-        state.directions = await response.json();
-        renderDirections();
-    } catch (error) {
-        console.error('Ошибка загрузки направлений:', error);
-        // Fallback данные
-        state.directions = [
-            { id: 1, name: 'Москва', code: 'MSK', active: true },
-            { id: 2, name: 'Санкт-Петербург', code: 'SPB', active: true },
-            { id: 3, name: 'Казань', code: 'KZN', active: true },
-            { id: 4, name: 'Екатеринбург', code: 'EKB', active: true }
-        ];
-        renderDirections();
-    }
-}
-
-// Загрузка настроек
 async function loadSettings() {
     try {
-        const response = await fetch(`${API_URL}/settings`);
-        state.settings = await response.json();
+        const res = await fetch(`${API_URL}/settings`);
+        state.settings = await res.json();
+        
         document.getElementById('warehouseAddress').textContent = 
-            state.settings.warehouseAddress || 'г. Москва, ул. Складская, д. 15';
-    } catch (error) {
-        state.settings = {
-            warehouseAddress: 'г. Москва, ул. Складская, д. 15, стр. 2',
-            minDaysBeforeDelivery: 1
-        };
+            state.settings.warehouseAddress || 'Адрес не указан';
+        document.getElementById('warehouseHours').textContent = 
+            state.settings.workHours || '';
+    } catch (e) {
+        console.error('Ошибка загрузки настроек:', e);
     }
 }
 
-// Рендер направлений
+async function loadDirections() {
+    try {
+        const res = await fetch(`${API_URL}/directions`);
+        state.directions = await res.json();
+        renderDirections();
+    } catch (e) {
+        console.error('Ошибка загрузки направлений:', e);
+    }
+}
+
+async function loadSlots(directionId) {
+    try {
+        const res = await fetch(`${API_URL}/slots/${directionId}`);
+        const slots = await res.json();
+        state.slots[directionId] = slots;
+        renderDates(slots);
+    } catch (e) {
+        console.error('Ошибка загрузки слотов:', e);
+    }
+}
+
+// ==================== РЕНДЕР ====================
+
 function renderDirections() {
     const container = document.getElementById('directionsContainer');
-    container.innerHTML = state.directions
-        .filter(d => d.active)
-        .map(direction => `
-            <label class="direction-card">
-                <input type="radio" name="direction" value="${direction.id}" 
-                       data-name="${direction.name}" data-code="${direction.code}">
-                <div class="card-content">
-                    <div class="name">${direction.name}</div>
-                    <div class="info">${direction.code}</div>
+    const noDirections = document.getElementById('noDirections');
+    
+    const activeDirections = state.directions.filter(d => d.active);
+    
+    if (activeDirections.length === 0) {
+        container.classList.add('hidden');
+        noDirections.classList.remove('hidden');
+        return;
+    }
+    
+    container.classList.remove('hidden');
+    noDirections.classList.add('hidden');
+    
+    container.innerHTML = activeDirections.map(dir => `
+        <label class="direction-item">
+            <input type="radio" name="direction" value="${dir.id}" 
+                   data-name="${dir.name}" data-code="${dir.code}">
+            <div class="direction-item-content">
+                <span class="direction-item-name">${dir.name}</span>
+                <span class="direction-item-code">${dir.code}</span>
+            </div>
+        </label>
+    `).join('');
+}
+
+function renderDates(slots) {
+    const container = document.getElementById('datesContainer');
+    
+    // Фильтруем только будущие даты
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const futureSlots = slots.filter(slot => {
+        const slotDate = new Date(slot.date);
+        return slotDate >= today;
+    }).sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    if (futureSlots.length === 0) {
+        container.innerHTML = '<p class="hint-text">Нет доступных дат для этого направления</p>';
+        return;
+    }
+    
+    container.innerHTML = futureSlots.map(slot => {
+        const date = new Date(slot.date);
+        const dayName = date.toLocaleDateString('ru-RU', { weekday: 'short' });
+        const dateStr = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+        
+        const isAvailable = slot.limit === 0 || slot.booked < slot.limit;
+        const slotsText = slot.limit > 0 
+            ? `${slot.limit - slot.booked} из ${slot.limit}` 
+            : 'Без лимита';
+        
+        return `
+            <label class="date-item">
+                <input type="radio" name="deliveryDate" value="${slot.date}" 
+                       ${!isAvailable ? 'disabled' : ''}>
+                <div class="date-item-content">
+                    <div class="date-item-day">${dayName}</div>
+                    <div class="date-item-date">${dateStr}</div>
+                    <div class="date-item-slots">${slotsText}</div>
                 </div>
             </label>
-        `).join('');
+        `;
+    }).join('');
 }
 
-// Установка минимальных дат
-function setMinDates() {
-    const today = new Date();
-    const minDays = state.settings.minDaysBeforeDelivery || 1;
-    
-    // Минимальная дата поставки - завтра
-    const minDeliveryDate = new Date(today);
-    minDeliveryDate.setDate(minDeliveryDate.getDate() + minDays + 1);
-    
-    document.getElementById('deliveryDate').min = formatDate(minDeliveryDate);
-}
+// ==================== ОБРАБОТЧИКИ ====================
 
-// Форматирование даты для input
-function formatDate(date) {
-    return date.toISOString().split('T')[0];
-}
-
-// Обработчики событий
 function initEventListeners() {
-    const form = document.getElementById('orderForm');
-    
     // Выбор направления
-    document.getElementById('directionsContainer').addEventListener('change', (e) => {
+    document.getElementById('directionsContainer').addEventListener('change', async (e) => {
         if (e.target.name === 'direction') {
-            state.selectedDirection = {
-                id: e.target.value,
+            state.selected.direction = {
+                id: parseInt(e.target.value),
                 name: e.target.dataset.name,
                 code: e.target.dataset.code
             };
+            state.selected.date = null;
+            await loadSlots(state.selected.direction.id);
             updateSummary();
         }
     });
     
-    // Выбор даты поставки
-    document.getElementById('deliveryDate').addEventListener('change', (e) => {
-        state.deliveryDate = e.target.value;
-        updatePickupDateLimits();
-        updateSummary();
+    // Выбор даты
+    document.getElementById('datesContainer').addEventListener('change', (e) => {
+        if (e.target.name === 'deliveryDate') {
+            state.selected.date = e.target.value;
+            updatePickupDateLimits();
+            updateSummary();
+        }
     });
     
-    // Выбор способа доставки
+    // Способ доставки
     document.querySelectorAll('input[name="deliveryMethod"]').forEach(input => {
         input.addEventListener('change', (e) => {
-            state.deliveryMethod = e.target.value;
+            state.selected.deliveryMethod = e.target.value;
             toggleDeliveryMethodSections();
             updateSummary();
         });
@@ -123,122 +166,124 @@ function initEventListeners() {
     
     // Дата забора
     document.getElementById('pickupDate').addEventListener('change', (e) => {
-        state.pickupDate = e.target.value;
+        state.selected.pickupDate = e.target.value;
         updateSummary();
     });
     
     // Тип груза
     document.querySelectorAll('input[name="cargoType"]').forEach(input => {
         input.addEventListener('change', (e) => {
-            state.cargoType = e.target.value;
-            updateQuantityUnit();
+            state.selected.cargoType = e.target.value;
             updateSummary();
         });
     });
     
     // Количество
     document.getElementById('quantity').addEventListener('input', (e) => {
-        state.quantity = parseInt(e.target.value) || 1;
+        state.selected.quantity = Math.max(1, parseInt(e.target.value) || 1);
         updateSummary();
     });
     
-    // Контактные поля
-    ['contactName', 'contactPhone', 'contactTelegram', 'pickupAddress'].forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.addEventListener('input', updateSummary);
-        }
+    document.getElementById('quantityMinus').addEventListener('click', () => {
+        const input = document.getElementById('quantity');
+        const val = Math.max(1, parseInt(input.value) - 1);
+        input.value = val;
+        state.selected.quantity = val;
+        updateSummary();
+    });
+    
+    document.getElementById('quantityPlus').addEventListener('click', () => {
+        const input = document.getElementById('quantity');
+        const val = parseInt(input.value) + 1;
+        input.value = val;
+        state.selected.quantity = val;
+        updateSummary();
+    });
+    
+    // Контакты
+    ['contactName', 'contactPhone', 'contactTelegram', 'pickupAddress', 'comment'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateSummary);
     });
     
     // Отправка формы
-    form.addEventListener('submit', handleSubmit);
+    document.getElementById('orderForm').addEventListener('submit', handleSubmit);
 }
 
-// Переключение секций способа доставки
 function toggleDeliveryMethodSections() {
     const pickupDateSection = document.getElementById('pickupDateSection');
     const pickupAddressSection = document.getElementById('pickupAddressSection');
     const ourAddressSection = document.getElementById('ourAddressSection');
+    const pickupDateLabel = document.getElementById('pickupDateLabel');
     
-    // Показываем секцию даты
     pickupDateSection.classList.remove('hidden');
     
-    if (state.deliveryMethod === 'pickup') {
-        // Мы забираем
+    if (state.selected.deliveryMethod === 'pickup') {
         pickupAddressSection.classList.remove('hidden');
         ourAddressSection.classList.add('hidden');
+        pickupDateLabel.textContent = 'Дата забора груза';
         document.getElementById('pickupAddress').required = true;
     } else {
-        // Клиент привозит
         pickupAddressSection.classList.add('hidden');
         ourAddressSection.classList.remove('hidden');
+        pickupDateLabel.textContent = 'Дата привоза груза';
         document.getElementById('pickupAddress').required = false;
     }
 }
 
-// Ограничения даты забора
 function updatePickupDateLimits() {
-    if (!state.deliveryDate) return;
+    if (!state.selected.date) return;
     
-    const deliveryDate = new Date(state.deliveryDate);
-    const minDays = state.settings.minDaysBeforeDelivery || 1;
-    
-    // Максимальная дата забора - за день до поставки
-    const maxPickupDate = new Date(deliveryDate);
-    maxPickupDate.setDate(maxPickupDate.getDate() - minDays);
-    
-    // Минимальная дата - сегодня
+    const deliveryDate = new Date(state.selected.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const pickupDateInput = document.getElementById('pickupDate');
-    pickupDateInput.min = formatDate(today);
-    pickupDateInput.max = formatDate(maxPickupDate);
+    // Максимум — за день до поставки
+    const maxDate = new Date(deliveryDate);
+    maxDate.setDate(maxDate.getDate() - 1);
     
-    // Сбрасываем если текущая дата не подходит
-    if (pickupDateInput.value) {
-        const currentPickup = new Date(pickupDateInput.value);
-        if (currentPickup > maxPickupDate || currentPickup < today) {
-            pickupDateInput.value = '';
-            state.pickupDate = null;
+    const pickupInput = document.getElementById('pickupDate');
+    pickupInput.min = formatDateInput(today);
+    pickupInput.max = formatDateInput(maxDate);
+    
+    // Сбрасываем если не подходит
+    if (pickupInput.value) {
+        const current = new Date(pickupInput.value);
+        if (current > maxDate || current < today) {
+            pickupInput.value = '';
+            state.selected.pickupDate = null;
         }
     }
 }
 
-// Обновление единицы измерения
-function updateQuantityUnit() {
-    const unitSpan = document.getElementById('quantityUnit');
-    const units = {
-        boxes: 'коробов',
-        pallets: 'палет',
-        mono_pallets: 'моно-палет'
-    };
-    unitSpan.textContent = units[state.cargoType] || 'шт.';
+function formatDateInput(date) {
+    return date.toISOString().split('T')[0];
 }
 
-// Обновление итогов
 function updateSummary() {
     const summary = document.getElementById('orderSummary');
     const submitBtn = document.getElementById('submitBtn');
     
-    const contactName = document.getElementById('contactName').value;
-    const contactPhone = document.getElementById('contactPhone').value;
-    const pickupAddress = document.getElementById('pickupAddress').value;
+    const contactName = document.getElementById('contactName').value.trim();
+    const contactPhone = document.getElementById('contactPhone').value.trim();
+    const pickupAddress = document.getElementById('pickupAddress').value.trim();
+    const pickupDate = document.getElementById('pickupDate').value;
     
-    // Проверяем заполненность
-    const isComplete = state.selectedDirection && 
-                       state.deliveryDate && 
-                       state.deliveryMethod && 
-                       state.cargoType && 
-                       state.quantity > 0 &&
-                       contactName && 
-                       contactPhone &&
-                       (state.deliveryMethod === 'dropoff' || pickupAddress) &&
-                       state.pickupDate;
+    // Проверка заполненности
+    const isComplete = 
+        state.selected.direction &&
+        state.selected.date &&
+        state.selected.deliveryMethod &&
+        state.selected.cargoType &&
+        state.selected.quantity > 0 &&
+        contactName &&
+        contactPhone &&
+        pickupDate &&
+        (state.selected.deliveryMethod === 'dropoff' || pickupAddress);
     
     submitBtn.disabled = !isComplete;
     
-    // Формируем итоги
+    // Рендер итогов
     const cargoNames = {
         boxes: 'Короба',
         pallets: 'Палеты',
@@ -246,58 +291,43 @@ function updateSummary() {
     };
     
     const methodNames = {
-        pickup: 'Мы заберём',
-        dropoff: 'Клиент привезёт'
+        pickup: 'Заберём сами',
+        dropoff: 'Привезёт клиент'
     };
     
-    let summaryHTML = '<div class="summary-rows">';
+    let html = '';
     
-    if (state.selectedDirection) {
-        summaryHTML += `
-            <div class="summary-row">
-                <span class="summary-label">Направление:</span>
-                <span class="summary-value">${state.selectedDirection.name}</span>
-            </div>`;
+    if (state.selected.direction) {
+        html += `<div class="summary-row">
+            <span class="summary-label">Направление</span>
+            <span class="summary-value">${state.selected.direction.name}</span>
+        </div>`;
     }
     
-    if (state.deliveryDate) {
-        summaryHTML += `
-            <div class="summary-row">
-                <span class="summary-label">Дата поставки:</span>
-                <span class="summary-value">${formatDisplayDate(state.deliveryDate)}</span>
-            </div>`;
+    if (state.selected.date) {
+        html += `<div class="summary-row">
+            <span class="summary-label">Дата поставки</span>
+            <span class="summary-value">${formatDisplayDate(state.selected.date)}</span>
+        </div>`;
     }
     
-    if (state.pickupDate) {
-        const label = state.deliveryMethod === 'pickup' ? 'Дата забора:' : 'Дата привоза:';
-        summaryHTML += `
-            <div class="summary-row">
-                <span class="summary-label">${label}</span>
-                <span class="summary-value">${formatDisplayDate(state.pickupDate)}</span>
-            </div>`;
+    if (state.selected.deliveryMethod) {
+        html += `<div class="summary-row">
+            <span class="summary-label">Доставка</span>
+            <span class="summary-value">${methodNames[state.selected.deliveryMethod]}</span>
+        </div>`;
     }
     
-    if (state.deliveryMethod) {
-        summaryHTML += `
-            <div class="summary-row">
-                <span class="summary-label">Способ:</span>
-                <span class="summary-value">${methodNames[state.deliveryMethod]}</span>
-            </div>`;
+    if (state.selected.cargoType) {
+        html += `<div class="summary-row">
+            <span class="summary-label">Груз</span>
+            <span class="summary-value">${cargoNames[state.selected.cargoType]} × ${state.selected.quantity}</span>
+        </div>`;
     }
     
-    if (state.cargoType) {
-        summaryHTML += `
-            <div class="summary-row">
-                <span class="summary-label">Груз:</span>
-                <span class="summary-value">${cargoNames[state.cargoType]} × ${state.quantity}</span>
-            </div>`;
-    }
-    
-    summaryHTML += '</div>';
-    summary.innerHTML = summaryHTML || '<p>Заполните форму для просмотра итогов</p>';
+    summary.innerHTML = html || '<p class="summary-placeholder">Заполните форму выше</p>';
 }
 
-// Форматирование даты для отображения
 function formatDisplayDate(dateStr) {
     const date = new Date(dateStr);
     return date.toLocaleDateString('ru-RU', {
@@ -307,59 +337,59 @@ function formatDisplayDate(dateStr) {
     });
 }
 
-// Отправка формы
+// ==================== ОТПРАВКА ====================
+
 async function handleSubmit(e) {
     e.preventDefault();
     
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Отправка...';
+    submitBtn.innerHTML = '<span>Отправка...</span>';
     
     const formData = {
-        direction: state.selectedDirection,
-        deliveryDate: state.deliveryDate,
-        pickupDate: state.pickupDate,
-        deliveryMethod: state.deliveryMethod,
-        pickupAddress: state.deliveryMethod === 'pickup' 
-            ? document.getElementById('pickupAddress').value 
+        direction: state.selected.direction,
+        deliveryDate: state.selected.date,
+        pickupDate: document.getElementById('pickupDate').value,
+        deliveryMethod: state.selected.deliveryMethod,
+        pickupAddress: state.selected.deliveryMethod === 'pickup' 
+            ? document.getElementById('pickupAddress').value.trim() 
             : null,
-        cargoType: state.cargoType,
-        quantity: state.quantity,
+        cargoType: state.selected.cargoType,
+        quantity: state.selected.quantity,
         contact: {
-            name: document.getElementById('contactName').value,
-            phone: document.getElementById('contactPhone').value,
-            telegram: document.getElementById('contactTelegram').value
+            name: document.getElementById('contactName').value.trim(),
+            phone: document.getElementById('contactPhone').value.trim(),
+            telegram: document.getElementById('contactTelegram').value.trim()
         },
-        comment: document.getElementById('comment').value
+        comment: document.getElementById('comment').value.trim()
     };
     
     try {
-        const response = await fetch(`${API_URL}/orders`, {
+        const res = await fetch(`${API_URL}/orders`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
         
-        const result = await response.json();
+        const result = await res.json();
         
         if (result.success) {
             document.getElementById('orderNumber').textContent = result.orderNumber;
             document.getElementById('successModal').classList.remove('hidden');
         } else {
-            alert('Ошибка: ' + result.message);
+            alert('Ошибка: ' + (result.message || 'Неизвестная ошибка'));
         }
     } catch (error) {
-        console.error('Ошибка отправки:', error);
-        alert('Произошла ошибка при отправке. Попробуйте позже.');
+        console.error('Ошибка:', error);
+        alert('Ошибка при отправке заявки');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Отправить заявку';
+        submitBtn.innerHTML = `
+            <span>Отправить заявку</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        `;
     }
 }
-
-// Закрытие модального окна
-document.querySelector('.close-modal')?.addEventListener('click', () => {
-    document.getElementById('successModal').classList.add('hidden');
-});
