@@ -1,1 +1,33 @@
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <!-- SEO Meta теги -->
+    <title>Логистика — Оформление поставок на склады</title>
+    <meta name="description" content="Быстрое оформление поставок на склады Wildberries, Ozon. Забор груза, доставка на склад. Москва, Санкт-Петербург, Казань.">
+    <meta name="keywords" content="логистика, поставки, склад, wildberries, ozon, доставка, фулфилмент">
+    <meta name="author" content="Ваша Компания">
+    
+    <!-- Open Graph (для соцсетей) -->
+    <meta property="og:title" content="Логистика — Оформление поставок">
+    <meta property="og:description" content="Быстрое оформление поставок на склады маркетплейсов">
+    <meta property="og:image" content="https://ваш-домен.ru/og-image.jpg">
+    <meta property="og:url" content="https://ваш-домен.ru">
+    <meta property="og:type" content="website">
+    
+    <!-- Другие мета теги -->
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#5B7FD3">
+    <link rel="canonical" href="https://ваш-домен.ru">
+    
+    <!-- Остальные стили -->
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
