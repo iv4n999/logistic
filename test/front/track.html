@@ -1,1 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отследить заявку</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">◆</span>
+                    <span class="logo-text">ЛОГИСТИКА</span>
+                </div>
+                <a href="/" class="header-link">← На главную</a>
+            </div>
+        </header>
 
+        <main class="main">
+            <div class="container container-sm">
+                <div class="page-title">
+                    <h1>Отследить заявку</h1>
+                    <p>Введите номер заявки и телефон для проверки статуса</p>
+                </div>
+
+                <div class="track-form-container">
+                    <form id="trackForm" class="track-form">
+                        <div class="field">
+                            <label class="field-label">Номер заявки</label>
+                            <input type="text" id="orderNumber" class="input" 
+                                   placeholder="ORD-XXXXXXX" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Последние 4 цифры телефона</label>
+                            <input type="text" id="phoneLast4" class="input" 
+                                   placeholder="1234" maxlength="4" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            Найти заявку
+                        </button>
+                    </form>
+
+                    <div id="trackError" class="track-error hidden">
+                        Заявка не найдена или неверный телефон
+                    </div>
+
+                    <div id="trackResult" class="track-result hidden">
+                        <div class="track-header">
+                            <span class="track-order-number" id="resultOrderNumber"></span>
+                            <span class="status-badge" id="resultStatus"></span>
+                        </div>
+                        <div class="track-details">
+                            <div class="track-row">
+                                <span class="track-label">Направление</span>
+                                <span class="track-value" id="resultDirection"></span>
+                            </div>
+                            <div class="track-row">
+                                <span class="track-label">Дата поставки</span>
+                                <span class="track-value" id="resultDate"></span>
+                            </div>
+                            <div class="track-row">
+                                <span class="track-label">Груз</span>
+                                <span class="track-value" id="resultCargo"></span>
+                            </div>
+                            <div class="track-row" id="resultPriceRow">
+                                <span class="track-label">Стоимость</span>
+                                <span class="track-value" id="resultPrice"></span>
+                            </div>
+                            <div class="track-row">
+                                <span class="track-label">Создана</span>
+                                <span class="track-value" id="resultCreated"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>© 2025 Логистика. Все права защищены.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('trackForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const orderNumber = document.getElementById('orderNumber').value.trim().toUpperCase();
+            const phone = document.getElementById('phoneLast4').value.trim();
+            
+            const errorEl = document.getElementById('trackError');
+            const resultEl = document.getElementById('trackResult');
+            
+            errorEl.classList.add('hidden');
+            resultEl.classList.add('hidden');
+            
+            try {
+                const res = await fetch('/api/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderNumber, phone })
+                });
+                
+                if (!res.ok) {
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+                
+                const order = await res.json();
+                
+                const statusNames = {
+                    new: 'Новая',
+                    confirmed: 'Подтверждена',
+                    in_progress: 'В работе',
+                    completed: 'Завершена',
+                    cancelled: 'Отменена'
+                };
+                
+                const cargoNames = {
+                    boxes: 'Короба',
+                    pallets: 'Палеты',
+                    mono_pallets: 'Моно-палеты'
+                };
+                
+                document.getElementById('resultOrderNumber').textContent = order.orderNumber;
+                
+                const statusEl = document.getElementById('resultStatus');
+                statusEl.textContent = statusNames[order.status] || order.status;
+                statusEl.className = `status-badge status-${order.status}`;
+                
+                document.getElementById('resultDirection').textContent = order.direction || '—';
+                document.getElementById('resultDate').textContent = formatDate(order.deliveryDate);
+                document.getElementById('resultCargo').textContent = 
+                    `${cargoNames[order.cargoType] || order.cargoType} × ${order.quantity}`;
+                
+                if (order.price && order.price.total) {
+                    document.getElementById('resultPrice').textContent = 
+                        order.price.total.toLocaleString('ru-RU') + ' ₽';
+                    document.getElementById('resultPriceRow').classList.remove('hidden');
+                } else {
+                    document.getElementById('resultPriceRow').classList.add('hidden');
+                }
+                
+                document.getElementById('resultCreated').textContent = formatDate(order.createdAt);
+                
+                resultEl.classList.remove('hidden');
+                
+            } catch (err) {
+                errorEl.classList.remove('hidden');
+            }
+        });
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            return new Date(dateStr).toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+    </script>
+</body>
+</html>
