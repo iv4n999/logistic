@@ -1,1 +1,26 @@
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <!-- SEO -->
+    <title>Логистика — Оформление поставок на склады</title>
+    <meta name="description" content="Быстрое оформление поставок на склады. Забор груза, доставка на склад. Калькулятор стоимости.">
+    <meta name="keywords" content="логистика, поставки, склад, доставка, забор груза">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Логистика — Оформление поставок">
+    <meta property="og:description" content="Быстрое оформление поставок на склады">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ваш-домен.ru">
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
