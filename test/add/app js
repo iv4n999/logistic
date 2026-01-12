@@ -1,1 +1,22 @@
+// ==================== КОПИРОВАНИЕ НОМЕРА ЗАЯВКИ ====================
 
+function copyOrderNumber() {
+    const orderNumber = document.getElementById('orderNumber').textContent;
+    const copyBtn = document.getElementById('copyBtn');
+    
+    // Копируем в буфер обмена
+    navigator.clipboard.writeText(orderNumber).then(() => {
+        // Меняем текст кнопки
+        copyBtn.innerHTML = '✓ Скопировано!';
+        copyBtn.classList.add('btn-copied');
+        
+        // Возвращаем через 2 секунды
+        setTimeout(() => {
+            copyBtn.innerHTML = '📋 Скопировать номер';
+            copyBtn.classList.remove('btn-copied');
+        }, 2000);
+    }).catch(() => {
+        // Если не сработало - выделяем текст
+        alert('Номер заявки: ' + orderNumber);
+    });
+}
