@@ -1,36 +1,307 @@
-<!-- Модальное окно успеха -->
-<div id="successModal" class="modal hidden">
-    <div class="modal-overlay"></div>
-    <div class="modal-container">
-        <div class="modal-content success-modal">
-            <div class="success-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Оформление поставки</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">◆</span>
+                    <span class="logo-text">ЛОГИСТИКА</span>
+                </div>
+                <div class="header-links">
+                    <a href="/track.html" class="header-link">Отследить заявку</a>
+                    <a href="/admin" class="header-link">Для сотрудников</a>
+                </div>
             </div>
-            <h2>Заявка отправлена!</h2>
-            <p class="order-number">№ <span id="orderNumber"></span></p>
-            <p id="orderPrice" class="order-price"></p>
-            
-            <div class="save-order-hint">
-                <span class="hint-icon">📋</span>
-                <span>Сохраните номер заявки для отслеживания статуса</span>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <div class="page-title">
+                    <h1>Оформление поставки</h1>
+                    <p>Заполните форму для создания заявки на поставку товара</p>
+                </div>
+
+                <form id="orderForm" class="form">
+                    <!-- Шаг 1: Направление -->
+                    <section class="form-section">
+                        <div class="section-header">
+                            <span class="section-number">1</span>
+                            <div>
+                                <h2>Направление</h2>
+                                <p>Выберите склад назначения</p>
+                            </div>
+                        </div>
+                        <div id="directionsContainer" class="directions-list"></div>
+                        <div id="noDirections" class="empty-message hidden">
+                            Нет доступных направлений
+                        </div>
+                    </section>
+
+                    <!-- Шаг 2: Дата поставки -->
+                    <section class="form-section">
+                        <div class="section-header">
+                            <span class="section-number">2</span>
+                            <div>
+                                <h2>Дата поставки</h2>
+                                <p>Выберите дату из доступных слотов</p>
+                            </div>
+                        </div>
+                        <div id="datesContainer" class="dates-grid">
+                            <p class="hint-text">Сначала выберите направление</p>
+                        </div>
+                    </section>
+
+                    <!-- Шаг 3: Способ доставки -->
+                    <section class="form-section">
+                        <div class="section-header">
+                            <span class="section-number">3</span>
+                            <div>
+                                <h2>Доставка груза</h2>
+                                <p>Как груз попадёт к нам</p>
+                            </div>
+                        </div>
+                        
+                        <div class="radio-cards">
+                            <label class="radio-card">
+                                <input type="radio" name="deliveryMethod" value="pickup">
+                                <div class="radio-card-content">
+                                    <div class="radio-card-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="1" y="3" width="15" height="13"></rect>
+                                            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                        </svg>
+                                    </div>
+                                    <div class="radio-card-text">
+                                        <strong>Заберём сами</strong>
+                                        <span>Мы приедем по вашему адресу</span>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="deliveryMethod" value="dropoff">
+                                <div class="radio-card-content">
+                                    <div class="radio-card-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                            <circle cx="12" cy="10" r="3"></circle>
+                                        </svg>
+                                    </div>
+                                    <div class="radio-card-text">
+                                        <strong>Привезу сам</strong>
+                                        <span>Доставлю на ваш склад</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Зона забора -->
+                        <div id="pickupZoneSection" class="sub-section hidden">
+                            <label class="field-label">Зона забора</label>
+                            <select id="pickupZone" class="input select-input-full"></select>
+                        </div>
+
+                        <!-- Дата забора/привоза -->
+                        <div id="pickupDateSection" class="sub-section hidden">
+                            <label class="field-label" id="pickupDateLabel">Дата забора груза</label>
+                            <input type="date" id="pickupDate" name="pickupDate" class="input">
+                            <p class="field-hint">Минимум за 1 день до даты поставки</p>
+                        </div>
+
+                        <!-- Адрес забора -->
+                        <div id="pickupAddressSection" class="sub-section hidden">
+                            <label class="field-label">Адрес забора</label>
+                            <textarea id="pickupAddress" name="pickupAddress" class="input textarea" 
+                                      placeholder="Город, улица, дом, строение&#10;Контактное лицо на месте&#10;Особенности подъезда"></textarea>
+                        </div>
+
+                        <!-- Наш адрес -->
+                        <div id="ourAddressSection" class="sub-section hidden">
+                            <div class="info-card">
+                                <div class="info-card-header">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    <span>Адрес нашего склада</span>
+                                </div>
+                                <p id="warehouseAddress" class="info-card-text">Загрузка...</p>
+                                <p id="warehouseHours" class="info-card-subtext"></p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Шаг 4: Тип груза -->
+                    <section class="form-section">
+                        <div class="section-header">
+                            <span class="section-number">4</span>
+                            <div>
+                                <h2>Груз</h2>
+                                <p>Тип и количество</p>
+                            </div>
+                        </div>
+                        
+                        <div class="cargo-options">
+                            <label class="cargo-option">
+                                <input type="radio" name="cargoType" value="boxes">
+                                <div class="cargo-option-content">
+                                    <span class="cargo-option-icon">📦</span>
+                                    <span class="cargo-option-name">Короба</span>
+                                    <span class="cargo-option-price" id="priceBoxes">—</span>
+                                </div>
+                            </label>
+                            <label class="cargo-option">
+                                <input type="radio" name="cargoType" value="pallets">
+                                <div class="cargo-option-content">
+                                    <span class="cargo-option-icon">🏗️</span>
+                                    <span class="cargo-option-name">Палеты</span>
+                                    <span class="cargo-option-price" id="pricePallets">—</span>
+                                </div>
+                            </label>
+                            <label class="cargo-option">
+                                <input type="radio" name="cargoType" value="mono_pallets">
+                                <div class="cargo-option-content">
+                                    <span class="cargo-option-icon">📐</span>
+                                    <span class="cargo-option-name">Моно-палеты</span>
+                                    <span class="cargo-option-price" id="priceMonoPallets">—</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="quantity-field">
+                            <label class="field-label">Количество</label>
+                            <div class="quantity-input-wrapper">
+                                <button type="button" class="quantity-btn" id="quantityMinus">−</button>
+                                <input type="number" id="quantity" name="quantity" class="quantity-input" min="1" value="1">
+                                <button type="button" class="quantity-btn" id="quantityPlus">+</button>
+                            </div>
+                            <div id="discountHint" class="discount-hint hidden"></div>
+                        </div>
+
+                        <!-- Срочность -->
+                        <div id="urgentSection" class="urgent-section hidden">
+                            <label class="urgent-checkbox">
+                                <input type="checkbox" id="isUrgent" name="isUrgent">
+                                <div class="urgent-content">
+                                    <span class="urgent-icon">⚡</span>
+                                    <div class="urgent-text">
+                                        <strong>Срочная доставка</strong>
+                                        <span id="urgentLabel">Приоритетная обработка</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </section>
+
+                    <!-- Шаг 5: Контакты -->
+                    <section class="form-section">
+                        <div class="section-header">
+                            <span class="section-number">5</span>
+                            <div>
+                                <h2>Контакты</h2>
+                                <p>Для связи по заявке</p>
+                            </div>
+                        </div>
+                        
+                        <div class="fields-grid">
+                            <div class="field">
+                                <label class="field-label">Имя *</label>
+                                <input type="text" id="contactName" name="contactName" class="input" required>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Телефон *</label>
+                                <input type="tel" id="contactPhone" name="contactPhone" class="input" 
+                                       placeholder="+7 (___) ___-__-__" required>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Telegram</label>
+                                <input type="text" id="contactTelegram" name="contactTelegram" class="input" 
+                                       placeholder="@username">
+                            </div>
+                            <div class="field field-full">
+                                <label class="field-label">Комментарий</label>
+                                <textarea id="comment" name="comment" class="input textarea" 
+                                          placeholder="Дополнительная информация о грузе"></textarea>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Калькулятор и итого -->
+                    <section class="form-section summary-section">
+                        <div class="calculator">
+                            <h3>💰 Стоимость</h3>
+                            <div id="calculatorBody" class="calculator-body">
+                                <p class="calculator-placeholder">Выберите направление и тип груза</p>
+                            </div>
+                            <div id="calculatorTotal" class="calculator-total hidden">
+                                <span>Итого:</span>
+                                <span id="totalPrice">0 ₽</span>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                            <span>Отправить заявку</span>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                    </section>
+                </form>
             </div>
-            
-            <p class="success-text">Мы свяжемся с вами для подтверждения</p>
-            
-            <div class="success-buttons">
-                <button onclick="copyOrderNumber()" class="btn btn-secondary" id="copyBtn">
-                    📋 Скопировать номер
-                </button>
-                <a href="/track.html" class="btn btn-secondary">
-                    🔍 Отследить заявку
-                </a>
-                <button onclick="location.reload()" class="btn btn-primary">
-                    Новая заявка
-                </button>
+        </main>
+
+        <footer class="footer">
+            <p>© 2025 Логистика. Все права защищены.</p>
+        </footer>
+    </div>
+
+    <!-- Модальное окно успеха -->
+    <div id="successModal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-content success-modal">
+                <div class="success-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <h2>Заявка отправлена!</h2>
+                <p class="order-number">№ <span id="orderNumber"></span></p>
+                <p id="orderPrice" class="order-price"></p>
+                
+                <div class="save-order-hint">
+                    <span class="hint-icon">📋</span>
+                    <span>Сохраните номер заявки для отслеживания</span>
+                </div>
+                
+                <p class="success-text">Мы свяжемся с вами для подтверждения</p>
+                
+                <div class="success-buttons">
+                    <button type="button" onclick="copyOrderNumber()" class="btn btn-secondary" id="copyBtn">
+                        📋 Скопировать номер
+                    </button>
+                    <a href="/track.html" class="btn btn-secondary">
+                        🔍 Отследить заявку
+                    </a>
+                    <button type="button" onclick="location.reload()" class="btn btn-primary">
+                        Новая заявка
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
