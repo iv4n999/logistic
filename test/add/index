@@ -1,1 +1,36 @@
-
+<!-- Модальное окно успеха -->
+<div id="successModal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-container">
+        <div class="modal-content success-modal">
+            <div class="success-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+            <h2>Заявка отправлена!</h2>
+            <p class="order-number">№ <span id="orderNumber"></span></p>
+            <p id="orderPrice" class="order-price"></p>
+            
+            <div class="save-order-hint">
+                <span class="hint-icon">📋</span>
+                <span>Сохраните номер заявки для отслеживания статуса</span>
+            </div>
+            
+            <p class="success-text">Мы свяжемся с вами для подтверждения</p>
+            
+            <div class="success-buttons">
+                <button onclick="copyOrderNumber()" class="btn btn-secondary" id="copyBtn">
+                    📋 Скопировать номер
+                </button>
+                <a href="/track.html" class="btn btn-secondary">
+                    🔍 Отследить заявку
+                </a>
+                <button onclick="location.reload()" class="btn btn-primary">
+                    Новая заявка
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
