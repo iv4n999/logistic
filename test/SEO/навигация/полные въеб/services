@@ -1,1 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <title>Услуги — Доставка на склады маркетплейсов | Логистика</title>
+    <meta name="description" content="Забор и доставка грузов на склады Wildberries, Ozon, Яндекс.Маркет. Работаем с коробами, палетами. Быстро, надёжно, недорого.">
+    <meta name="keywords" content="доставка на склад, забор груза, логистика wildberries, доставка ozon, фулфилмент">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="header">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <span class="logo-icon">◆</span>
+                    <span class="logo-text">ЛОГИСТИКА</span>
+                </a>
+                
+                <nav class="header-nav">
+                    <a href="/" class="header-link">Заявка</a>
+                    <a href="/services.html" class="header-link active">Услуги</a>
+                    <a href="/prices.html" class="header-link">Цены</a>
+                    <a href="/about.html" class="header-link">О нас</a>
+                    <a href="/contacts.html" class="header-link">Контакты</a>
+                    <a href="/track.html" class="header-link">Отследить</a>
+                </nav>
+                
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            
+            <nav class="mobile-nav hidden" id="mobileNav">
+                <a href="/" class="mobile-nav-link">Заявка</a>
+                <a href="/services.html" class="mobile-nav-link active">Услуги</a>
+                <a href="/prices.html" class="mobile-nav-link">Цены</a>
+                <a href="/about.html" class="mobile-nav-link">О нас</a>
+                <a href="/contacts.html" class="mobile-nav-link">Контакты</a>
+                <a href="/track.html" class="mobile-nav-link">Отследить заявку</a>
+                <a href="/admin" class="mobile-nav-link">Для сотрудников</a>
+            </nav>
+        </header>
 
+        <main class="main">
+            <div class="container">
+                <div class="page-title">
+                    <h1>Услуги доставки на склады маркетплейсов</h1>
+                    <p>Полный цикл логистики для продавцов Wildberries, Ozon, Яндекс.Маркет</p>
+                </div>
+
+                <div class="content-page">
+                    <section class="content-section">
+                        <h2>🚛 Забор груза</h2>
+                        <p>Заберём ваш товар с любого адреса в Москве и Московской области. Работаем с физическими лицами и компаниями.</p>
+                        <ul>
+                            <li>Забор в пределах МКАД — от 1 500 ₽</li>
+                            <li>Забор до 30 км от МКАД — от 2 500 ₽</li>
+                            <li>Забор по Московской области — от 3 500 ₽</li>
+                        </ul>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>📦 Доставка на склады Wildberries</h2>
+                        <p>Доставляем грузы на все склады Вайлдберриз по России:</p>
+                        <ul>
+                            <li><strong>Коледино</strong> — основной склад в Подмосковье</li>
+                            <li><strong>Электросталь</strong> — склад в Московской области</li>
+                            <li><strong>Санкт-Петербург</strong> — склады в СПб и ЛО</li>
+                            <li><strong>Казань</strong> — склад в Татарстане</li>
+                            <li><strong>Екатеринбург</strong> — склад на Урале</li>
+                            <li><strong>Краснодар</strong> — склад на юге России</li>
+                        </ul>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>📦 Доставка на склады Ozon</h2>
+                        <p>Работаем со всеми складами Озон. Принимаем короба и палеты.</p>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>🏷 Типы грузов</h2>
+                        <div class="features-grid">
+                            <div class="feature-card">
+                                <span class="feature-icon">📦</span>
+                                <h3>Короба</h3>
+                                <p>Отдельные коробки любого размера. Минимальный заказ — от 1 короба.</p>
+                            </div>
+                            <div class="feature-card">
+                                <span class="feature-icon">🏗️</span>
+                                <h3>Палеты</h3>
+                                <p>Стандартные палеты 120×80 см. Сборные и монопалеты.</p>
+                            </div>
+                            <div class="feature-card">
+                                <span class="feature-icon">📐</span>
+                                <h3>Моно-палеты</h3>
+                                <p>Палеты с одним артикулом. Упрощённая приёмка на складе.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>⚡ Срочная доставка</h2>
+                        <p>Нужно доставить быстро? Предлагаем услугу срочной доставки с приоритетной обработкой. Груз будет доставлен в первую очередь.</p>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>✅ Почему выбирают нас</h2>
+                        <ul>
+                            <li>Работаем с 2020 года</li>
+                            <li>Более 10 000 успешных доставок</li>
+                            <li>Собственный автопарк</li>
+                            <li>Страхование грузов</li>
+                            <li>Прозрачные цены без скрытых платежей</li>
+                            <li>Онлайн отслеживание заявок</li>
+                        </ul>
+                    </section>
+
+                    <div class="cta-section">
+                        <h2>Готовы оформить доставку?</h2>
+                        <p>Рассчитайте стоимость и оставьте заявку онлайн</p>
+                        <a href="/" class="btn btn-primary btn-lg">Оформить заявку</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p>© 2025 Логистика. Доставка на склады маркетплейсов.</p>
+                <p>Работаем по всей России: Москва, Санкт-Петербург, Казань, Екатеринбург</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+    document.getElementById('mobileMenuBtn')?.addEventListener('click', function() {
+        this.classList.toggle('active');
+        document.getElementById('mobileNav').classList.toggle('hidden');
+    });
+    </script>
+</body>
+</html>
