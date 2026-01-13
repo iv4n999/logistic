@@ -1,1 +1,36 @@
-
+<header class="header">
+    <div class="header-content">
+        <a href="/" class="logo">
+            <span class="logo-icon">◆</span>
+            <span class="logo-text">ЛОГИСТИКА</span>
+        </a>
+        
+        <!-- Меню для десктопа -->
+        <nav class="header-nav">
+            <a href="/" class="header-link active">Заявка</a>
+            <a href="/services.html" class="header-link">Услуги</a>
+            <a href="/prices.html" class="header-link">Цены</a>
+            <a href="/about.html" class="header-link">О нас</a>
+            <a href="/contacts.html" class="header-link">Контакты</a>
+            <a href="/track.html" class="header-link">Отследить</a>
+        </nav>
+        
+        <!-- Бургер для мобильных -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+    
+    <!-- Мобильное меню -->
+    <nav class="mobile-nav hidden" id="mobileNav">
+        <a href="/" class="mobile-nav-link active">Заявка</a>
+        <a href="/services.html" class="mobile-nav-link">Услуги</a>
+        <a href="/prices.html" class="mobile-nav-link">Цены</a>
+        <a href="/about.html" class="mobile-nav-link">О нас</a>
+        <a href="/contacts.html" class="mobile-nav-link">Контакты</a>
+        <a href="/track.html" class="mobile-nav-link">Отследить заявку</a>
+        <a href="/admin" class="mobile-nav-link">Для сотрудников</a>
+    </nav>
+</header>
