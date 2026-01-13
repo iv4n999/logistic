@@ -1,1 +1,10 @@
+<script>
+// Мобильное меню
+document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+    this.classList.toggle('active');
+    document.getElementById('mobileNav').classList.toggle('hidden');
+});
+</script>
 
+<script src="js/app.js"></script>
+</body>
