@@ -1,1 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <title>Цены на доставку — Тарифы на логистику для маркетплейсов</title>
+    <meta name="description" content="Стоимость доставки на склады Wildberries, Ozon. Цены на забор груза, доставку коробов и палет. Скидки за объём до 20%.">
+    <meta name="keywords" content="цены на доставку, стоимость логистики, тарифы wildberries, сколько стоит доставка на склад">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="header">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <span class="logo-icon">◆</span>
+                    <span class="logo-text">ЛОГИСТИКА</span>
+                </a>
+                
+                <nav class="header-nav">
+                    <a href="/" class="header-link">Заявка</a>
+                    <a href="/services.html" class="header-link">Услуги</a>
+                    <a href="/prices.html" class="header-link active">Цены</a>
+                    <a href="/about.html" class="header-link">О нас</a>
+                    <a href="/contacts.html" class="header-link">Контакты</a>
+                    <a href="/track.html" class="header-link">Отследить</a>
+                </nav>
+                
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            
+            <nav class="mobile-nav hidden" id="mobileNav">
+                <a href="/" class="mobile-nav-link">Заявка</a>
+                <a href="/services.html" class="mobile-nav-link">Услуги</a>
+                <a href="/prices.html" class="mobile-nav-link active">Цены</a>
+                <a href="/about.html" class="mobile-nav-link">О нас</a>
+                <a href="/contacts.html" class="mobile-nav-link">Контакты</a>
+                <a href="/track.html" class="mobile-nav-link">Отследить заявку</a>
+                <a href="/admin" class="mobile-nav-link">Для сотрудников</a>
+            </nav>
+        </header>
 
+        <main class="main">
+            <div class="container">
+                <div class="page-title">
+                    <h1>Цены на доставку грузов</h1>
+                    <p>Прозрачные тарифы без скрытых платежей</p>
+                </div>
+
+                <div class="content-page">
+                    <section class="content-section">
+                        <h2>📦 Стоимость доставки по направлениям</h2>
+                        
+                        <div class="price-table-wrapper">
+                            <table class="price-table">
+                                <thead>
+                                    <tr>
+                                        <th>Направление</th>
+                                        <th>Короб</th>
+                                        <th>Палета</th>
+                                        <th>Моно-палета</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Москва (Коледино)</td>
+                                        <td>от 50 ₽</td>
+                                        <td>от 500 ₽</td>
+                                        <td>от 700 ₽</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Москва (Электросталь)</td>
+                                        <td>от 55 ₽</td>
+                                        <td>от 550 ₽</td>
+                                        <td>от 750 ₽</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Санкт-Петербург</td>
+                                        <td>от 80 ₽</td>
+                                        <td>от 700 ₽</td>
+                                        <td>от 900 ₽</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Казань</td>
+                                        <td>от 100 ₽</td>
+                                        <td>от 900 ₽</td>
+                                        <td>от 1 100 ₽</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>🚛 Стоимость забора груза</h2>
+                        <div class="price-table-wrapper">
+                            <table class="price-table">
+                                <thead>
+                                    <tr>
+                                        <th>Зона</th>
+                                        <th>Стоимость</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>В пределах МКАД</td>
+                                        <td>1 500 ₽</td>
+                                    </tr>
+                                    <tr>
+                                        <td>До 10 км от МКАД</td>
+                                        <td>2 000 ₽</td>
+                                    </tr>
+                                    <tr>
+                                        <td>До 30 км от МКАД</td>
+                                        <td>2 500 ₽</td>
+                                    </tr>
+                                    <tr>
+                                        <td>До 50 км от МКАД</td>
+                                        <td>3 500 ₽</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Более 50 км</td>
+                                        <td>от 5 000 ₽</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>🎁 Скидки за объём</h2>
+                        <p>Чем больше заказ — тем выгоднее:</p>
+                        <ul>
+                            <li><strong>От 50 единиц</strong> — скидка 5%</li>
+                            <li><strong>От 100 единиц</strong> — скидка 10%</li>
+                            <li><strong>От 200 единиц</strong> — скидка 15%</li>
+                            <li><strong>От 500 единиц</strong> — скидка 20%</li>
+                        </ul>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>⚡ Срочная доставка</h2>
+                        <p>Надбавка +50% к базовой стоимости. Груз обрабатывается в приоритетном порядке.</p>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>💳 Способы оплаты</h2>
+                        <ul>
+                            <li>Наличные при получении</li>
+                            <li>Безналичный расчёт (для юр. лиц)</li>
+                            <li>Перевод на карту</li>
+                        </ul>
+                    </section>
+
+                    <div class="cta-section">
+                        <h2>Рассчитайте точную стоимость</h2>
+                        <p>Воспользуйтесь онлайн-калькулятором на сайте</p>
+                        <a href="/" class="btn btn-primary btn-lg">Рассчитать стоимость</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p>© 2025 Логистика. Доставка на склады маркетплейсов.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+    document.getElementById('mobileMenuBtn')?.addEventListener('click', function() {
+        this.classList.toggle('active');
+        document.getElementById('mobileNav').classList.toggle('hidden');
+    });
+    </script>
+</body>
+</html>
